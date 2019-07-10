@@ -116,7 +116,7 @@ def EstTransMat(labelfile,method):
     return None
 
 def main(inputpath,outputpath,labelfile):
-    with open('IdNameMap_pr1954.json') as jsonfile:
+    with open('../../personnel-records/1954/Id2Name_cls.json') as jsonfile:
         Id2Name_cls = json.load(jsonfile)
 
     clean_names = lambda x: [i for i in x if i[0] != '.']

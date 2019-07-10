@@ -1,0 +1,648 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="c8deca3f-bada-4f94-a325-e041b25c010c" name="Default Changelist" comment="Codes for row/col classification">
+      <change afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/untitled.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/webServers.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/CNN/finetune.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/CNN/finetune_models.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/CNN/temp.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/CNN/test.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/CNN/test_models.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/CNN/train.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/CNN/train_models.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/CNN/weight_pr1954.h5" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/GraphicalModel/GraphicalModel.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/GraphicalModel/GraphicalModel.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/GraphicalModel/GraphicalModel_test.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/GraphicalModel/GraphicalModel_test.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/GraphicalModel/Viterbi.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/GraphicalModel/label_pr1954.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/GraphicalModel/output_prob.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/GraphicalModel/output_prob.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/MountNFSFileShare.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/OCR/jp-manager-067be80ec47f.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/OCR/jp-manager-885dcc3b4488.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Preprocessing/1.tif" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Preprocessing/DatasetGenerator.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Preprocessing/DownloadDataset.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Preprocessing/GenerateDataset.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Preprocessing/Img2Page.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Preprocessing/excute_row2col.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Preprocessing/excute_row2col.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Preprocessing/label.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Preprocessing/label_teikoku1957.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Preprocessing/row2col.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Preprocessing/testset_pr1954.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Preprocessing/testset_teikoku_1957.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Preprocessing/trainset_pr1954.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Preprocessing/trainset_teikoku_1957.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/classification.sh" afterDir="false" />
+    </list>
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileEditorManager">
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/GraphicalModel/output_prob.sh">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="225">
+              <caret line="15" lean-forward="true" selection-start-line="15" selection-end-line="15" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/GraphicalModel/GraphicalModel.sh">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="30">
+              <caret line="2" column="57" selection-start-line="2" selection-start-column="52" selection-end-line="2" selection-end-column="57" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/GraphicalModel/output_prob.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="290">
+              <caret line="29" column="37" lean-forward="true" selection-start-line="29" selection-start-column="37" selection-end-line="29" selection-end-column="37" />
+              <folding>
+                <element signature="e#37#48#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/GraphicalModel/GraphicalModel.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="224">
+              <caret line="137" column="32" selection-start-line="137" selection-start-column="32" selection-end-line="137" selection-end-column="32" />
+              <folding>
+                <element signature="e#0#15#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/GraphicalModel/Viterbi.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="751">
+              <caret line="52" column="24" lean-forward="true" selection-start-line="52" selection-start-column="24" selection-end-line="52" selection-end-column="24" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="FindInProjectRecents">
+    <findStrings>
+      <find>row2col</find>
+      <find>json</find>
+      <find>edges_list</find>
+      <find>csv</find>
+      <find>np</find>
+      <find>4,</find>
+      <find>4,19</find>
+      <find>0,19,</find>
+      <find>7,19,</find>
+      <find>trainset</find>
+      <find>pdb</find>
+      <find>weight</find>
+      <find>9</find>
+      <find>SetEdges</find>
+      <find>train_test_split</find>
+      <find>transform</find>
+      <find>Reshape</find>
+      <find>Activation</find>
+      <find>Flatten</find>
+      <find>Dropout</find>
+      <find>Dense</find>
+      <find>Conv2D</find>
+      <find>GlobalAveragePooling2D</find>
+      <find>Classification</find>
+      <find>cls</find>
+      <find>Decode</find>
+      <find>GetMappingDict</find>
+      <find>label</find>
+      <find>GetGroundTruth</find>
+      <find>EstTransMat</find>
+    </findStrings>
+  </component>
+  <component name="Git.Settings">
+    <option name="PREVIOUS_COMMIT_AUTHORS">
+      <list>
+        <option value="kaixuan" />
+      </list>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="IdeDocumentHistory">
+    <option name="CHANGED_PATHS">
+      <list>
+        <option value="$PROJECT_DIR$/code-pr/train_models.py" />
+        <option value="$PROJECT_DIR$/code-teikoku/excute.sh" />
+        <option value="$PROJECT_DIR$/code-teikoku/temp.py" />
+        <option value="$PROJECT_DIR$/Preprocessing/excute_row2col.sh" />
+        <option value="$PROJECT_DIR$/Preprocessing/row2col.py" />
+        <option value="$PROJECT_DIR$/Preprocessing/excute_row2col.py" />
+        <option value="$PROJECT_DIR$/GraphicalModel/GetGraph.py" />
+        <option value="$PROJECT_DIR$/Preprocessing/trainset_teikoku_1957.csv" />
+        <option value="$PROJECT_DIR$/code-teikoku/train_models.py" />
+        <option value="$PROJECT_DIR$/code-teikoku/finetune_models.py" />
+        <option value="$PROJECT_DIR$/code-teikoku/test_models.py" />
+        <option value="$PROJECT_DIR$/code-teikoku/test.sh" />
+        <option value="$PROJECT_DIR$/code-teikoku/finetune.sh" />
+        <option value="$PROJECT_DIR$/code-teikoku/train.sh" />
+        <option value="$PROJECT_DIR$/Preprocessing/DownloadDataset.sh" />
+        <option value="$PROJECT_DIR$/Preprocessing/Img2Page.py" />
+        <option value="$PROJECT_DIR$/classification.sh" />
+        <option value="$PROJECT_DIR$/CNN/train.sh" />
+        <option value="$PROJECT_DIR$/MountNFSFileShare.sh" />
+        <option value="$PROJECT_DIR$/Preprocessing/GenerateDataset.sh" />
+        <option value="$PROJECT_DIR$/Preprocessing/DatasetGenerator.py" />
+        <option value="$PROJECT_DIR$/CNN/finetune.sh" />
+        <option value="$PROJECT_DIR$/CNN/classification.py" />
+        <option value="$PROJECT_DIR$/CNN/finetune_models.py" />
+        <option value="$PROJECT_DIR$/CNN/prediction.py" />
+        <option value="$PROJECT_DIR$/CNN/test_models.py" />
+        <option value="$PROJECT_DIR$/CNN/test.sh" />
+        <option value="$PROJECT_DIR$/GraphicalModel/GraphicalModel_test.py" />
+        <option value="$PROJECT_DIR$/GraphicalModel/output_prob.py" />
+        <option value="$PROJECT_DIR$/GraphicalModel/GraphicalModel.sh" />
+        <option value="$PROJECT_DIR$/GraphicalModel/Viterbi.py" />
+        <option value="$PROJECT_DIR$/GraphicalModel/output_prob.sh" />
+        <option value="$PROJECT_DIR$/GraphicalModel/GraphicalModel.py" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectFrameBounds" fullScreen="true">
+    <option name="x" value="14" />
+    <option name="y" value="62" />
+    <option name="width" value="1126" />
+    <option name="height" value="858" />
+  </component>
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectView">
+    <navigator currentView="Scope" currentSubView="Scope 'Project Files'; set:Project Files; class com.intellij.psi.search.scope.ProjectFilesScope" proportions="" version="1">
+      <foldersAlwaysOnTop value="true" />
+    </navigator>
+    <panes>
+      <pane id="Scope">
+        <subPane subId="Scope 'Project Files'; set:Project Files; class com.intellij.psi.search.scope.ProjectFilesScope">
+          <expand>
+            <path>
+              <item name="AHA_Harvard" type="3d21c010:ScopeViewTreeModel$ProjectNode" />
+              <item name="~/PycharmProjects/AHA_Harvard" type="442cc68d:ScopeViewTreeModel$RootNode" />
+            </path>
+            <path>
+              <item name="AHA_Harvard" type="3d21c010:ScopeViewTreeModel$ProjectNode" />
+              <item name="~/PycharmProjects/AHA_Harvard" type="442cc68d:ScopeViewTreeModel$RootNode" />
+              <item name="CNN" type="9f88c78c:ScopeViewTreeModel$FileNode" />
+            </path>
+            <path>
+              <item name="AHA_Harvard" type="3d21c010:ScopeViewTreeModel$ProjectNode" />
+              <item name="~/PycharmProjects/AHA_Harvard" type="442cc68d:ScopeViewTreeModel$RootNode" />
+              <item name="GraphicalModel" type="9f88c78c:ScopeViewTreeModel$FileNode" />
+            </path>
+            <path>
+              <item name="AHA_Harvard" type="3d21c010:ScopeViewTreeModel$ProjectNode" />
+              <item name="~/PycharmProjects/AHA_Harvard" type="442cc68d:ScopeViewTreeModel$RootNode" />
+              <item name="OCR" type="9f88c78c:ScopeViewTreeModel$FileNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+      <pane id="ProjectPane" />
+    </panes>
+  </component>
+  <component name="PropertiesComponent">
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/GraphicalModel" />
+    <property name="node.js.detected.package.eslint" value="true" />
+    <property name="node.js.path.for.package.eslint" value="project" />
+    <property name="node.js.selected.package.eslint" value="(autodetect)" />
+    <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
+    <property name="nodejs_npm_path_reset_for_default_project" value="true" />
+    <property name="settings.editor.selected.configurable" value="preferences.lookFeel" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/GraphicalModel" />
+      <recent name="$PROJECT_DIR$/CNN" />
+      <recent name="$PROJECT_DIR$/Preprocessing" />
+      <recent name="$PROJECT_DIR$" />
+      <recent name="$PROJECT_DIR$/OCR" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/Preprocessing" />
+      <recent name="$PROJECT_DIR$/GraphicalModel" />
+      <recent name="$PROJECT_DIR$/CNN" />
+      <recent name="$PROJECT_DIR$" />
+    </key>
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="RunManager">
+    <configuration name="finetune_models" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="untitled" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/code-teikoku" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/code-teikoku/finetune_models.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.finetune_models" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="c8deca3f-bada-4f94-a325-e041b25c010c" name="Default Changelist" comment="" />
+      <created>1559929903048</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1559929903048</updated>
+      <workItem from="1559929907354" duration="666000" />
+      <workItem from="1559930689752" duration="429000" />
+      <workItem from="1559936405771" duration="2387000" />
+      <workItem from="1560102310141" duration="1385000" />
+      <workItem from="1560179530566" duration="7634000" />
+      <workItem from="1560264265974" duration="1182000" />
+      <workItem from="1560282094755" duration="2530000" />
+      <workItem from="1560356629625" duration="1395000" />
+      <workItem from="1560383167498" duration="3727000" />
+      <workItem from="1560439359236" duration="3504000" />
+      <workItem from="1560451537532" duration="8654000" />
+      <workItem from="1560538459768" duration="11939000" />
+      <workItem from="1560742841107" duration="797000" />
+      <workItem from="1560784443965" duration="5572000" />
+      <workItem from="1560828594413" duration="378000" />
+      <workItem from="1560885986319" duration="181000" />
+      <workItem from="1560977431927" duration="1779000" />
+      <workItem from="1561047505057" duration="2963000" />
+      <workItem from="1561388861852" duration="288000" />
+      <workItem from="1561665454031" duration="376000" />
+      <workItem from="1561736744879" duration="4125000" />
+      <workItem from="1562001641994" duration="2249000" />
+      <workItem from="1562091422332" duration="676000" />
+      <workItem from="1562174546986" duration="214000" />
+      <workItem from="1562213152433" duration="380000" />
+      <workItem from="1562214618907" duration="99000" />
+      <workItem from="1562215061322" duration="12000" />
+      <workItem from="1562215606731" duration="108000" />
+      <workItem from="1562215771229" duration="4000" />
+      <workItem from="1562347154261" duration="238000" />
+      <workItem from="1562347459577" duration="3096000" />
+      <workItem from="1562352099936" duration="1788000" />
+      <workItem from="1562600835791" duration="9900000" />
+      <workItem from="1562644713918" duration="216000" />
+      <workItem from="1562681790481" duration="5918000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TimeTrackingManager">
+    <option name="totallyTimeSpent" value="86789000" />
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="14" y="62" width="1126" height="858" extended-state="0" />
+    <editor active="true" />
+    <layout>
+      <window_info content_ui="combo" id="Project" order="0" weight="0.29704797" />
+      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
+      <window_info id="Favorites" order="2" side_tool="true" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.3297362" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.3297362" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="bottom" id="TODO" order="6" />
+      <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Version Control" order="8" />
+      <window_info anchor="bottom" id="File Transfer" order="9" visible="true" weight="0.36292428" />
+      <window_info anchor="bottom" id="Database Changes" order="10" />
+      <window_info anchor="bottom" id="Terminal" order="11" weight="0.3297362" />
+      <window_info anchor="bottom" id="Event Log" order="12" side_tool="true" />
+      <window_info anchor="bottom" id="Python Console" order="13" />
+      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
+      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+      <window_info anchor="right" id="SciView" order="3" weight="0.32841328" />
+      <window_info anchor="right" id="Database" order="4" />
+    </layout>
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="UnknownFeatures">
+    <option featureType="com.intellij.fileTypeFactory" implementationName="*.csv" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Codes for row/col classification" />
+    <MESSAGE value="Codes for graphical model" />
+    <MESSAGE value="Preprocess scanned images. Output row/col images. Still under developing." />
+    <MESSAGE value="mount S3 bucket on EC2 instance" />
+    <MESSAGE value="bash for running the whole project" />
+    <option name="LAST_COMMIT_MESSAGE" value="bash for running the whole project" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/CNN/finetune_models.py</url>
+          <line>3</line>
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/AHA_Harvard$finetune_models.coverage" NAME="finetune_models Coverage Results" MODIFIED="1560282372397" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/code-teikoku" />
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/code-teikoku/excute.sh" />
+    <entry file="file://$PROJECT_DIR$/code-teikoku/GraphicalModel" />
+    <entry file="file://$PROJECT_DIR$/GraphicalModel/test_models.py" />
+    <entry file="file://$PROJECT_DIR$/code-pr/train_models.py" />
+    <entry file="file://$PROJECT_DIR$/code-teikoku/excute_row2col.py" />
+    <entry file="file://$PROJECT_DIR$/code-teikoku/row2col.py" />
+    <entry file="file://$PROJECT_DIR$/Preprocessing/row2col.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="298">
+          <caret line="104" column="84" lean-forward="true" selection-start-line="104" selection-start-column="4" selection-end-line="104" selection-end-column="84" />
+          <folding>
+            <element signature="e#239#270#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Preprocessing/excute_row2col.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="532">
+          <caret line="58" column="40" lean-forward="true" selection-start-line="58" selection-start-column="40" selection-end-line="58" selection-end-column="40" />
+          <folding>
+            <element signature="e#0#16#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Preprocessing/excute_row2col.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="30">
+          <caret line="2" column="31" lean-forward="true" selection-start-line="2" selection-start-column="31" selection-end-line="2" selection-end-column="31" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/GraphicalModel/GetGraph.py" />
+    <entry file="file://$PROJECT_DIR$/Preprocessing/testset_teikoku_1957.csv">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-2340" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Preprocessing/trainset_teikoku_1957.csv">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="126">
+          <caret line="362" column="13" lean-forward="true" selection-start-line="362" selection-start-column="13" selection-end-line="362" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/code-teikoku/test_models.py" />
+    <entry file="file://$PROJECT_DIR$/code-teikoku/finetune_models.py" />
+    <entry file="file://$PROJECT_DIR$/code-teikoku/temp.py" />
+    <entry file="file://$PROJECT_DIR$/code-teikoku/train.sh" />
+    <entry file="file://$PROJECT_DIR$/code-teikoku/finetune.sh" />
+    <entry file="file://$PROJECT_DIR$/code-teikoku/test.sh" />
+    <entry file="file://$PROJECT_DIR$/Preprocessing/Img2Page.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="165">
+          <caret line="13" column="49" selection-start-line="13" selection-start-column="49" selection-end-line="13" selection-end-column="49" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/code-teikoku/train_models.py" />
+    <entry file="file://$PROJECT_DIR$/CNN/temp.py">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/OCR/jp-manager-067be80ec47f.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret selection-end-line="12" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/testFileGateway/test.sh" />
+    <entry file="file://$PROJECT_DIR$/classification.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="135">
+          <caret line="9" column="13" selection-start-line="9" selection-start-column="13" selection-end-line="9" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/MountNFSFileShare.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="45">
+          <caret line="3" selection-start-line="3" selection-end-line="3" selection-end-column="87" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/CNN/train.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="45">
+          <caret line="3" column="30" lean-forward="true" selection-start-line="3" selection-start-column="30" selection-end-line="3" selection-end-column="30" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Preprocessing/DatasetGenerator.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="655">
+          <caret line="47" column="30" lean-forward="true" selection-start-line="47" selection-start-column="30" selection-end-line="47" selection-end-column="30" />
+          <folding>
+            <element signature="e#26#35#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Preprocessing/GenerateDataset.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="135">
+          <caret line="9" lean-forward="true" selection-start-line="9" selection-end-line="9" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Preprocessing/DownloadDataset.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="120">
+          <caret line="8" lean-forward="true" selection-start-line="8" selection-end-line="8" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/CNN/finetune.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="45">
+          <caret line="3" column="60" lean-forward="true" selection-start-line="3" selection-start-column="22" selection-end-line="3" selection-end-column="60" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Preprocessing/label.csv">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="150">
+          <caret line="10" column="4" selection-start-line="10" selection-start-column="4" selection-end-line="10" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Preprocessing/label_teikoku1957.csv">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/CNN/train_models.py">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/CNN/classification.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="341">
+          <caret line="76" column="36" lean-forward="true" selection-start-line="76" selection-start-column="36" selection-end-line="76" selection-end-column="36" />
+          <folding>
+            <element signature="e#37#60#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/CNN/test.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="120">
+          <caret line="8" column="49" lean-forward="true" selection-start-line="8" selection-start-column="49" selection-end-line="8" selection-end-column="49" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/CNN/prediction.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="361">
+          <caret line="64" column="31" lean-forward="true" selection-start-line="64" selection-start-column="31" selection-end-line="64" selection-end-column="31" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/CNN/test_models.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="304">
+          <caret line="77" column="33" selection-start-line="77" selection-start-column="33" selection-end-line="77" selection-end-column="33" />
+          <folding>
+            <element signature="e#38#61#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/CNN/finetune_models.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="75">
+          <caret line="5" column="29" selection-start-line="5" selection-start-column="29" selection-end-line="5" selection-end-column="29" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/GraphicalModel/label_pr1954.csv">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="135">
+          <caret line="9" column="57" lean-forward="true" selection-start-line="9" selection-start-column="57" selection-end-line="9" selection-end-column="57" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/GraphicalModel/GraphicalModel_test.sh">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/GraphicalModel/GraphicalModel_test.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="68">
+          <caret line="41" column="35" lean-forward="true" selection-start-line="41" selection-start-column="35" selection-end-line="41" selection-end-column="35" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/GraphicalModel/output_prob.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="290">
+          <caret line="29" column="37" lean-forward="true" selection-start-line="29" selection-start-column="37" selection-end-line="29" selection-end-column="37" />
+          <folding>
+            <element signature="e#37#48#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/GraphicalModel/output_prob.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="225">
+          <caret line="15" lean-forward="true" selection-start-line="15" selection-end-line="15" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/GraphicalModel/Viterbi.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="751">
+          <caret line="52" column="24" lean-forward="true" selection-start-line="52" selection-start-column="24" selection-end-line="52" selection-end-column="24" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/GraphicalModel/GraphicalModel.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="30">
+          <caret line="2" column="57" selection-start-line="2" selection-start-column="52" selection-end-line="2" selection-end-column="57" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/GraphicalModel/GraphicalModel.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="224">
+          <caret line="137" column="32" selection-start-line="137" selection-start-column="32" selection-end-line="137" selection-end-column="32" />
+          <folding>
+            <element signature="e#0#15#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+  </component>
+</project>

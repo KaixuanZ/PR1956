@@ -64,6 +64,9 @@ def TestAcc(graph):
     GT = GetGroundTruth('../Preprocessing/testset_pr1954.csv')
 
     cls,acc = graph.CNNClassification(),0
+
+    import pdb;
+    pdb.set_trace()
     for i in range(len(cls)):
         if cls2GT[cls[i]]==GT[i]:
             acc+=1
@@ -128,6 +131,8 @@ def EstTransMat(method):
             count[GT2cls[labels[i]]][GT2cls[labels[i+1]]]+=1
         import pdb;
         pdb.set_trace()
+        count[1, :] = 1
+        count[:, 1] = 1
         return count.tolist()
         #return np.multiply(count, np.array(manual)).tolist()
     print("input error for function EstTransMat()")
@@ -138,11 +143,11 @@ def main(path):
 
     graph=Graph()
     #get values on nodes
-    for file in sorted(clean_names(os.listdir(path))):
-        for jsonfile in sorted(clean_names(os.listdir(os.path.join(path,file)))):
-            with open(os.path.join(path,file,jsonfile)) as inputfile:
-                prob = json.load(inputfile)
-                graph.AddNodes([*prob.values()])
+    file='pr1954_p837_1'
+    for jsonfile in sorted(os.listdir(os.path.join(path,file))):
+        with open(os.path.join(path,file,jsonfile)) as inputfile:
+            prob = json.load(inputfile)
+            graph.AddNodes([*prob.values()])
     #get values on edges
     graph.SetEdges(EstTransMat(AUTO))
 

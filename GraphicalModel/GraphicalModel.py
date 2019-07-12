@@ -25,9 +25,12 @@ class Graph(object):
         self.Edges=TransMat
 
     def Decode(self):
-        if self.Nodes==[] or self.Edges==None:
+        if self.Edges==None:
             print("No graph for decoding")
-            return []
+            if self.Nodes==[]:
+                return []
+            else:
+                return max(self.Nodes[0])
         else:
             self.cls=[]
             self.cls=Viterbi.Viterbi([self.Edges]*(len(self.Nodes)-1),self.Nodes)
@@ -110,6 +113,9 @@ def EstTransMat(labelfile,method):
         GT2cls=GetMappingDict(1)
         for i in range(len(labels)-1):
             count[GT2cls[labels[i]]][GT2cls[labels[i+1]]]+=1
+        #import pdb;pdb.set_trace()
+        count[1,:]=1
+        count[:,1]=1
         return count.tolist()
         #return np.multiply(count, np.array(manual)).tolist()
     print("input error for function EstTransMat()")
@@ -126,6 +132,7 @@ def main(inputpath,outputpath,labelfile):
     graph.SetEdges(EstTransMat(labelfile, AUTO))
 
     for dir in sorted(clean_names(os.listdir(inputpath))):  #one dir includes prob for one page
+        print("processing "+dir)
         graph.Nodes=[]
         graph.cls=[]
         cls={}

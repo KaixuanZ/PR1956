@@ -13,3 +13,7 @@ mkdir $OutputPath
 WeightFile=${WeightFile:-'../CNN/weight_finetune_pr1954.h5'}
 
 python output_prob.py --inputpath=$InputPath --outputpath=$OutputPath --weightfile=$WeightFile --GPU_num=$GPUNum
+
+#advertisement page
+rm -rf "$OutputPath/pr1954_p827_0/"
+rm -rf "$OutputPath/pr1954_p883_0/"

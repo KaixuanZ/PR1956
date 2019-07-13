@@ -13,7 +13,7 @@ def Viterbi(edges_list,vertices_list):    #a list of edges, a list of vertices
     info_dict['vertices']=[]
     '''
     pre_probs=np.array(vertices_list.pop(0))
-    pre_probs[pre_probs<np.max(pre_probs)]=0
+    #pre_probs[pre_probs<np.max(pre_probs)]=0
     for i in range(len(vertices_list)):
         if i%100==0:
             print(i)

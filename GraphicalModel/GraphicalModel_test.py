@@ -4,6 +4,7 @@ import json
 import csv
 import Viterbi
 import numpy as np
+import copy
 
 DEFAULT,MANUAL,AUTO=0,1,2
 
@@ -11,6 +12,20 @@ class Graph(object):
     def __init__(self):
         self.Nodes=[]
         self.Edges=None
+        self.Blanks=[]  #index of blank on original sequence
+        self.cls=[]
+
+    def RemoveBlank(self):  #for output prob of CNN, "1":"blank"
+        for i in range(len(self.Nodes)-1,0-1,-1):
+            if self.Nodes[i].index(max(self.Nodes[i]))==1:
+                self.Blanks.append(i)
+        for Blank in self.Blanks:
+            self.Nodes.pop(Blank)
+
+    def InsertBlank(self):
+        # import pdb;pdb.set_trace()
+        for i in range(len(self.Blanks)-1,0-1,-1):
+            self.cls.insert(self.Blanks[i],1)
 
     def AddNodes(self,Nodes):
         Nodes=np.array(Nodes)
@@ -29,7 +44,7 @@ class Graph(object):
             return []
         else:
             self.cls=[]
-            self.cls=Viterbi.Viterbi([self.Edges]*(len(self.Nodes)-1),self.Nodes)
+            self.cls=Viterbi.Viterbi([self.Edges]*(len(self.Nodes)-1),copy.copy(self.Nodes))
             return self.cls
 
     def CNNClassification(self):
@@ -60,25 +75,49 @@ def GetMappingDict(f=0):    # f=0: cls2GT ; f=1: GT2cls
     return Dict
 
 def TestAcc(graph):
+    #compute Confusion Mat and acc for each class
     cls2GT=GetMappingDict() # mapping from classification result to ground truth
     GT = GetGroundTruth('../Preprocessing/testset_pr1954.csv')
-
+    ConfMat=np.zeros([len(cls2GT),len(cls2GT)])
     cls,acc = graph.CNNClassification(),0
-
     import pdb;
     pdb.set_trace()
+
     for i in range(len(cls)):
+        ConfMat[cls2GT[cls[i]],GT[i]]+=1
         if cls2GT[cls[i]]==GT[i]:
             acc+=1
     print('classification accuracy of neural network is : ',acc/len(cls))
+    print('confusion matrix: \n',ConfMat)
 
+    ConfMat = np.zeros([len(cls2GT), len(cls2GT)])
     cls,acc = graph.Decode(),0
     for i in range(len(cls)):
+        ConfMat[cls2GT[cls[i]], GT[i]] += 1
         if cls2GT[cls[i]] == GT[i]:
             acc += 1
     print('classification accuracy after applying graphcial model is : ', acc/len(cls))
+    print('confusion matrix: \n',ConfMat)
 
-def GetGroundTruth(path):
+    import pdb;
+    pdb.set_trace()
+
+    ConfMat = np.zeros([len(cls2GT), len(cls2GT)])
+    graph.RemoveBlank()
+    graph.Decode()
+    graph.InsertBlank()
+    cls, acc = graph.cls, 0
+    for i in range(len(cls)):
+        ConfMat[cls2GT[cls[i]], GT[i]] += 1
+        if cls2GT[cls[i]] == GT[i]:
+            acc += 1
+    print('classification accuracy after applying graphcial model and removing blanks is : ', acc / len(cls))
+    print('confusion matrix: \n', ConfMat)
+
+    import pdb;
+    pdb.set_trace()
+
+def GetGroundTruth(path,RemoveBlank=False):
     with open(path) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
         line_count = 0
@@ -87,7 +126,11 @@ def GetGroundTruth(path):
             if line_count == 0:
                 line_count += 1
             elif row[0] is not '':
-                GroundTruth.append(int(row[0]))
+                if RemoveBlank:
+                    if row[0] is not '0':
+                        GroundTruth.append(int(row[0]))
+                else:
+                    GroundTruth.append(int(row[0]))
             else:
                 return GroundTruth
         return GroundTruth
@@ -125,16 +168,14 @@ def EstTransMat(method):
         return manual
     elif method==AUTO:
         count=np.ones([Dim,Dim])
-        labels=GetGroundTruth('../Preprocessing/trainset_pr1954.csv')
+        labels=GetGroundTruth('../Preprocessing/trainset_pr1954.csv',RemoveBlank=True)
         GT2cls=GetMappingDict(1)
         for i in range(len(labels)-1):
             count[GT2cls[labels[i]]][GT2cls[labels[i+1]]]+=1
-        import pdb;
-        pdb.set_trace()
-        count[1, :] = 1
-        count[:, 1] = 1
-        return count.tolist()
-        #return np.multiply(count, np.array(manual)).tolist()
+        #import pdb;
+        #pdb.set_trace()
+        #return count.tolist()
+        return np.multiply(count, np.array(manual)).tolist()
     print("input error for function EstTransMat()")
     return None
 
@@ -152,8 +193,6 @@ def main(path):
     graph.SetEdges(EstTransMat(AUTO))
 
     TestAcc(graph)
-
-    #import pdb;pdb.set_trace()
 
 if __name__ == '__main__':
     # construct the argument parse and parse the arguments

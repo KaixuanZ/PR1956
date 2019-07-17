@@ -169,9 +169,9 @@ def main(inputpath,outputpath,labelfile):
                 # get values on nodes
                 graph.AddNodes([*prob.values()])
         #output cls
-        #graph.RemoveBlank()
+        graph.RemoveBlank()
         graph.Decode()
-        #graph.InsertBlank()
+        graph.InsertBlank()
         cls['id'] =graph.cls
         cls['id'] = [int(i) for i in cls['id']]
         cls['name'] = [Id2Name_cls[str(i)] for i in cls['id']]

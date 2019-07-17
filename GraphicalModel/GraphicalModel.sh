@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-InputPath=${InputPath:-'../../personnel-records/1954/prob/'}
+#InputPath=${InputPath:-'../../personnel-records/1954/prob/'}
+InputPath=${InputPath:-'../../data/'}
 
 OutputPath=${OutputPath:-'../../personnel-records/1954/cls/'}
 
@@ -12,7 +13,7 @@ mkdir $OutputPath
 
 python GraphicalModel.py --inputpath=$InputPath --outputpath=$OutputPath --labelfile=$LabelFile
 
-
+python CountCName.py
 
 # for teikoku 1957
 # 98.15% without graphicalmodel

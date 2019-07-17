@@ -10,6 +10,9 @@ rm $OutputPath --recursive
 
 mkdir $OutputPath
 
+#InputPath=../../personnel-records/1954/seg/row3/
+#OutputPath=${OutputPath:-'prob_pr1954'}
+
 WeightFile=${WeightFile:-'../CNN/weight_finetune_pr1954.h5'}
 
 python output_prob.py --inputpath=$InputPath --outputpath=$OutputPath --weightfile=$WeightFile --GPU_num=$GPUNum

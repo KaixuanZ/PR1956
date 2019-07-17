@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 
-InputPath=${InputPath:-'../../personnel-records/1954/prob/'}
+
+#InputPath=${InputPath:-'../../personnel-records/1954/prob/'}
+
+InputPath=${InputPath:-'prob_pr1954/'}
 
 python GraphicalModel.py --inputpath=$InputPath
 

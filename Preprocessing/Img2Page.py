@@ -2,7 +2,6 @@ import os
 import numpy as np
 import cv2
 
-
 def MahalonobisDistance(x, mean, cov):
     # definition of M-distance, not used in this file
     v = x - mean
@@ -20,20 +19,42 @@ def SegByMahalonobisDistance(matrix, mean, cov, thr):
           cov_inv[0, 1] * 2
     return dis < thr ** 2  # mask for segmentation
 
+def order_points(pts):
+    # sort the points based on their x-coordinates
+    xSorted = pts[np.argsort(pts[:, 0]), :]
+
+    # grab the left-most and right-most points from the sorted
+    # x-roodinate points
+    leftMost = xSorted[:2, :]
+    rightMost = xSorted[2:, :]
+
+    # now, sort the left-most coordinates according to their
+    # y-coordinates so we can grab the top-left and bottom-left
+    # points, respectively
+    leftMost = leftMost[np.argsort(leftMost[:, 1]), :]
+    (tl, bl) = leftMost
+
+    rightMost = rightMost[np.argsort(rightMost[:, 1]), :]
+    (tr, br) = rightMost
+
+    return np.array([tl, tr, br, bl])
 
 def CropRect(img, rect):
     box = cv2.boxPoints(rect)
-    box = np.int0(box)
+    box = order_points(box)
     # get width and height of the detected rectangle
-    width, height = int(rect[1][0]), int(rect[1][1])
+    if rect[2]<-45:
+        height,width = int(rect[1][0]),int(rect[1][1])
+    else:
+        width,height = int(rect[1][0]),int(rect[1][1])
 
     src_pts = box.astype("float32")
     # corrdinate of the points in box points after the rectangle has been
     # straightened
-    dst_pts = np.array([[0, height - 1],
-                        [0, 0],
+    dst_pts = np.array([[0, 0],
                         [width - 1, 0],
-                        [width - 1, height - 1]], dtype="float32")
+                        [width - 1, height - 1],
+                        [0, height - 1]], dtype="float32")
 
     # the perspective transformation matrix
     M = cv2.getPerspectiveTransform(src_pts, dst_pts)
@@ -65,20 +86,25 @@ def DecodeFilename(filename):
     return book, f, n
 
 
-file = '1.tif'
-mean, cov = TrainGaussian(file)
-thr = 2.25
+#file = 'trainset/1.tif'
+#mean, cov = TrainGaussian(file)
+mean=np.array([20.76549421, 68.80967093])
+cov=np.array([[ 2.00308826, -7.05376449],
+       [-7.05376449, 46.9934228 ]])
+thr = 2.5
 
-inputdir = '../testFileGateway/1956/scans/parsed'
-outputdir = '../testFileGateway/1956/tmp'
+inputdir = 'pr1956'
+outputdir = '../../personnel-records/1956/seg/page_kaixuan'
+if not os.path.isdir(outputdir):
+    os.mkdir(outputdir)
+    print('creating directory ' + outputdir)
 clean_names = lambda x: [i for i in x if i[0] != '.']
 
 target_names = os.listdir(inputdir)
 target_names = clean_names(target_names)
 
 for target_name in target_names:
-    print("processing "+target_name)
-
+    print("processing ",target_name)
     book, f, n = DecodeFilename(target_name)
 
     img = cv2.imread(os.path.join(inputdir, target_name))
@@ -94,25 +120,47 @@ for target_name in target_names:
     mask = cv2.erode(mask.astype(np.uint8), kernel, iterations=1)
 
     ret, labels = cv2.connectedComponents(mask.astype(np.uint8))
-    size, label = 0, 0
+    size1,label1=0,0
+    size2,label2=0,0
     # find the largest region
-    for i in range(1, ret):
-        if np.sum((labels == i).astype(int)) > size:
-            size = np.sum((labels == i).astype(int))
-            label = i
+    for i in range(1,ret):
+        if np.sum((labels==i).astype(int))>size1:
+            size2,label2=size1,label1
+            size1=np.sum((labels==i).astype(int))
+            label1=i
+        elif np.sum((labels==i).astype(int))>size2:
+            size2=np.sum((labels==i).astype(int))
+            label2=i
     # fit a rect
-    _, cnts, _ = cv2.findContours((labels == label).astype(np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    cnts, _ = cv2.findContours((labels == label1).astype(np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     rect = cv2.minAreaRect(cnts[0] * k)
 
     # crop the rect (pages)
     warped = CropRect(img, rect)
 
     # seg pages to page if necessary
-    if warped.shape[0] * warped.shape[1] > 0.5 * img.shape[0] * img.shape[1]:
-        index = int(warped.shape[1] / 2)
-        page1 = warped[:, 0:index, :]
-        cv2.imwrite(os.path.join(outputdir, f + '_' + n + '_' + 'p0.png'), page1)
-        page2 = warped[:, index:, :]
-        cv2.imwrite(os.path.join(outputdir, f + '_' + n + '_' + 'p1.png'), page2)
+    if warped.shape[0]*warped.shape[1]>0.8*img.shape[0]*img.shape[1]:
+        index=int(warped.shape[1]/2)
+        page1=warped[:,0:index,:]
+        cv2.imwrite(os.path.join(outputdir,f+'_'+n+'_'+'p0.png'), page1)
+        page2=warped[:,index:,:]
+        cv2.imwrite(os.path.join(outputdir,f+'_'+n+'_'+'p1.png'), page2)
+        print("output to "+outputdir)
+    elif warped.shape[0]*warped.shape[1]>0.38*img.shape[0]*img.shape[1]:
+        cnts1,_ = cv2.findContours((labels==label2).astype(np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE )
+        rect1=cv2.minAreaRect(cnts1[0]*k)
+        warped1 = CropRect(img,rect1)
+        print("output to "+outputdir)
+        if warped1.shape[0]*warped1.shape[1]>0.38*img.shape[0]*img.shape[1]:
+            if rect[0][0]<rect1[0][0]:
+                cv2.imwrite(os.path.join(outputdir,f+'_'+n+'_'+'p0.png'), warped)
+                cv2.imwrite(os.path.join(outputdir,f+'_'+n+'_'+'p1.png'), warped1)
+            else:
+                cv2.imwrite(os.path.join(outputdir,f+'_'+n+'_'+'p0.png'), warped1)
+                cv2.imwrite(os.path.join(outputdir,f+'_'+n+'_'+'p1.png'), warped)
+        else:
+            cv2.imwrite(os.path.join(outputdir,f+'_'+n+'_'+'p0.png'), warped)
+            print("warning: only one output for "+target_name)
     else:
-        cv2.imwrite(os.path.join(outputdir, f + '_' + n + '_' + 'p0.png'), warped)
+        print("warning: no output for "+target_name)
+

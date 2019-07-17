@@ -80,6 +80,8 @@ def TestAcc(graph):
     GT = GetGroundTruth('../Preprocessing/testset_pr1954.csv')
     ConfMat=np.zeros([len(cls2GT),len(cls2GT)])
     cls,acc = graph.CNNClassification(),0
+    import pdb;
+    pdb.set_trace()
 
     for i in range(len(cls)):
         ConfMat[cls2GT[cls[i]],GT[i]]+=1
@@ -96,6 +98,9 @@ def TestAcc(graph):
             acc += 1
     print('classification accuracy after applying graphcial model is : ', acc/len(cls))
     print('confusion matrix: \n',ConfMat)
+
+    import pdb;
+    pdb.set_trace()
 
     ConfMat = np.zeros([len(cls2GT), len(cls2GT)])
     graph.RemoveBlank()
@@ -179,11 +184,11 @@ def main(path):
 
     graph=Graph()
     #get values on nodes
-    for file in sorted(clean_names(os.listdir(path))):
-        for jsonfile in sorted(clean_names(os.listdir(os.path.join(path,file)))):
-            with open(os.path.join(path,file,jsonfile)) as inputfile:
-                prob = json.load(inputfile)
-                graph.AddNodes([*prob.values()])
+    file='pr1954_p837_1'
+    for jsonfile in sorted(os.listdir(os.path.join(path,file))):
+        with open(os.path.join(path,file,jsonfile)) as inputfile:
+            prob = json.load(inputfile)
+            graph.AddNodes([*prob.values()])
     #get values on edges
     graph.SetEdges(EstTransMat(AUTO))
 

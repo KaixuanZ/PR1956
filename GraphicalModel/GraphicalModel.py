@@ -4,6 +4,7 @@ import json
 import csv
 import Viterbi
 import numpy as np
+import copy
 
 DEFAULT,MANUAL,AUTO=0,1,2
 
@@ -12,6 +13,20 @@ class Graph(object):
         self.Nodes=[]
         self.Edges=None
         self.cls = []
+        self.Blanks = []  # index of blank on original sequence
+
+    def RemoveBlank(self):  # for output prob of CNN, "1":"blank"
+        self.Blanks=[]
+        for i in range(len(self.Nodes) - 1, 0 - 1, -1):
+            if self.Nodes[i].index(max(self.Nodes[i])) == 1:
+                self.Blanks.append(i)
+        for Blank in self.Blanks:
+            self.Nodes.pop(Blank)
+
+    def InsertBlank(self):
+        # import pdb;pdb.set_trace()
+        for i in range(len(self.Blanks) - 1, 0 - 1, -1):
+            self.cls.insert(self.Blanks[i], 1)
 
     def AddNodes(self,Nodes):
         Nodes=np.array(Nodes)
@@ -27,13 +42,13 @@ class Graph(object):
     def Decode(self):
         if self.Edges==None:
             print("No graph for decoding")
-            if self.Nodes==[]:
-                return []
-            else:
-                return max(self.Nodes[0])
+        elif self.Nodes==[]:
+            return []
+        elif len(self.Nodes)==1:
+            return self.Nodes[0].index(max(self.Nodes[0]))
         else:
             self.cls=[]
-            self.cls=Viterbi.Viterbi([self.Edges]*(len(self.Nodes)-1),self.Nodes)
+            self.cls=Viterbi.Viterbi([self.Edges]*(len(self.Nodes)-1),copy.copy(self.Nodes))
             return self.cls
 
     def CNNClassification(self):
@@ -62,7 +77,7 @@ def GetMappingDict(f=0):    # f=0: cls2GT ; f=1: GT2cls
         Dict = dict([(value, key) for key, value in Dict.items()])
     return Dict
 
-def GetGroundTruth(path):
+def GetGroundTruth(path,RemoveBlank=False):
     with open(path) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
         line_count = 0
@@ -71,7 +86,11 @@ def GetGroundTruth(path):
             if line_count == 0:
                 line_count += 1
             elif row[0] is not '':
-                GroundTruth.append(int(row[0]))
+                if RemoveBlank:
+                    if row[0] is not '0':
+                        GroundTruth.append(int(row[0]))
+                else:
+                    GroundTruth.append(int(row[0]))
             else:
                 return GroundTruth
         return GroundTruth
@@ -93,6 +112,15 @@ def EstTransMat(labelfile,method):
     '''
 
     Dim=7
+    '''
+    manual = [[1, 1, 1, 1, 1, 1, 1],  # 0
+              [1, 1, 1, 1, 1, 1, 1],  # 1
+              [1, 1, 1, 1, 0, 0, 0],  # 2
+              [1, 1, 1, 1, 1, 1, 1],  # 3
+              [1, 1, 1, 1, 1, 1, 1],  # 4
+              [1, 1, 0, 1, 1, 1, 1],  # 5
+              [1, 1, 0, 1, 1, 1, 1], ]  # 6
+    '''
     manual = [[1, 1, 0, 1, 0, 1, 1],  # 0
              [1, 1, 1, 1, 1, 1, 1],  # 1
              [1, 1, 1, 1, 0, 0, 0],  # 2
@@ -100,7 +128,6 @@ def EstTransMat(labelfile,method):
              [0, 1, 1, 1, 1, 0, 0],  # 4
              [0, 1, 0, 1, 1, 1, 1],  # 5
              [0, 1, 0, 1, 1, 1, 1], ]  # 6
-
     if method==DEFAULT:
         return [[1/Dim]*Dim]*Dim
     elif method==MANUAL:
@@ -109,15 +136,15 @@ def EstTransMat(labelfile,method):
         return manual
     elif method==AUTO:
         count=np.ones([Dim,Dim])
-        labels=GetGroundTruth(labelfile)
+        labels=GetGroundTruth(labelfile,RemoveBlank=True)
         GT2cls=GetMappingDict(1)
         for i in range(len(labels)-1):
             count[GT2cls[labels[i]]][GT2cls[labels[i+1]]]+=1
         #import pdb;pdb.set_trace()
         count[1,:]=1
         count[:,1]=1
-        return count.tolist()
-        #return np.multiply(count, np.array(manual)).tolist()
+        #return count.tolist()
+        return np.multiply(count, np.array(manual)).tolist()
     print("input error for function EstTransMat()")
     return None
 
@@ -142,7 +169,10 @@ def main(inputpath,outputpath,labelfile):
                 # get values on nodes
                 graph.AddNodes([*prob.values()])
         #output cls
-        cls['id']=graph.Decode()
+        #graph.RemoveBlank()
+        graph.Decode()
+        #graph.InsertBlank()
+        cls['id'] =graph.cls
         cls['id'] = [int(i) for i in cls['id']]
         cls['name'] = [Id2Name_cls[str(i)] for i in cls['id']]
         with open(os.path.join(outputpath, dir+'.json'), 'w') as outputfile:

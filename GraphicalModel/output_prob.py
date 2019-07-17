@@ -43,6 +43,7 @@ def main(inputpath,outputpath,weightfile):
     count=0
     outputdir=''
     for dir in clean_names(os.listdir(inputpath)):
+    #for dir in ['pr1954_p246_0_1','pr1954_p246_0_2','pr1954_p246_0_3','pr1954_p246_0_4','pr1954_p246_0_5']:
         print("processing image in "+dir)
         if outputdir != dir[:-2]:
             outputdir=dir[:-2]

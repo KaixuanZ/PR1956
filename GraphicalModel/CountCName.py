@@ -13,6 +13,8 @@ for dir in sorted(clean_names(os.listdir(inputpath))):  #one dir includes prob f
         cls = json.load(jsonfile)
     cls=cls['id']
     for i in range(len(cls)):
-        if cls[i]==2 and cls[max(i-1,0)]!=2:
+        if i==0 and cls[i]==2:
+            count+=1
+        elif cls[i]==2 and cls[max(i-1,0)]!=2:
             count+=1
 print(count)

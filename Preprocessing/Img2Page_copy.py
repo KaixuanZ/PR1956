@@ -41,7 +41,7 @@ def order_points(pts):
     return np.array([tl, tr, br, bl])
 
 def CropRect(img, rect):
-    box = cv2.boxPoints(rect)
+    box = cv2.boxPoints(tuple(rect))
     box = order_points(box)
     # get width and height of the detected rectangle
     if rect[2]<-45:
@@ -79,40 +79,13 @@ def TrainGaussian(file):
     return mean, cov
 
 
-def Zeropadding(filename):
+def DecodeFilename(filename):
     filename = filename.split('.')[0]
     book, f, n = filename.split('_')
     f = f[0] + f[1:].zfill(4)   #zeropadding
     n = n
-    return book + '_' + f + '_' + n
+    return book, f, n
 
-def OutputRect(outputdir,filename,rect,splitPage=False):
-    if splitPage:
-        #split the rect to two smaller rects (two pages)
-        if rect[2] < -45:
-            height, width = int(rect[1][0]), int(rect[1][1])
-            theta = np.deg2rad(rect[2] + 90)
-            norm = width / 4
-            vect = [norm * np.sin(theta), norm * np.cos(theta)]
-            rect0 = [[rect[0][0] - vect[0], rect[0][1] - vect[0]], [height, width / 2], rect[2]]
-            rect1 = [[rect[0][0] + vect[1], rect[0][1] + vect[1]], [height, width / 2], rect[2]]
-        else:
-            width, height = int(rect[1][0]), int(rect[1][1])
-            theta = np.deg2rad(rect[2])
-            norm = width / 4
-            vect = [norm * np.sin(theta), norm * np.cos(theta)]
-            rect0 = [[rect[0][0] - vect[0], rect[0][1] - vect[0]], [width / 2, height], rect[2]]
-            rect1 = [[rect[0][0] + vect[1], rect[0][1] + vect[1]], [width / 2, height], rect[2]]
-        with open(os.path.join(outputdir, filename + '_0.json'), 'w') as outfile:
-            json.dump(rect0, outfile)
-            print('writing results to ' + os.path.join(outputdir, filename + '_0.json'))
-        with open(os.path.join(outputdir, filename + '_1.json'), 'w') as outfile:
-            json.dump(rect1, outfile)
-            print('writing results to ' + os.path.join(outputdir, filename + '_1.json'))
-    else:
-        with open(os.path.join(outputdir, filename), 'w') as outfile:
-            json.dump(rect, outfile)
-            print('writing results to ' + os.path.join(outputdir, filename))
 
 #file = 'trainset/1.tif'
 #mean, cov = TrainGaussian(file)
@@ -132,6 +105,7 @@ target_names = os.listdir(inputdir)
 target_names = clean_names(target_names)
 for target_name in target_names:
     print("processing ",target_name)
+    book, f, n = DecodeFilename(target_name)
 
     img = cv2.imread(os.path.join(inputdir, target_name))
 
@@ -148,7 +122,7 @@ for target_name in target_names:
     ret, labels = cv2.connectedComponents(mask.astype(np.uint8))
     size1,label1=0,0
     size2,label2=0,0
-    # find the largest two regions
+    # find the largest region
     for i in range(1,ret):
         if np.sum((labels==i).astype(int))>size1:
             size2,label2=size1,label1
@@ -159,29 +133,44 @@ for target_name in target_names:
             label2=i
     # fit a rect
     cnts, _ = cv2.findContours((labels == label1).astype(np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    rect0 = cv2.minAreaRect(cnts[0] * k)
+    rect = cv2.minAreaRect(cnts[0] * k)
 
-    filename=Zeropadding(target_name)
+    # crop the rect (pages)
+    warped = CropRect(img, rect)
+    import pdb;pdb.set_trace()
+
+
+    with open('../../output/pr1956_f115_0.json') as jsonfile:
+        rect = json.load(jsonfile)
+
+    warped_tmp = CropRect(img, rect)
+    import pdb;
+
+    pdb.set_trace()
+
     # seg pages to page if necessary
-    if rect0[1][0]*rect0[1][1]>0.8*img.shape[0]*img.shape[1]:
-        OutputRect(outputdir,filename,rect0,splitPage=True)
-    elif rect0[1][0]*rect0[1][1]>0.38*img.shape[0]*img.shape[1]:
-        #page(s) may be detected seperately
+    if warped.shape[0]*warped.shape[1]>0.8*img.shape[0]*img.shape[1]:
+        index=int(warped.shape[1]/2)
+        page1=warped[:,0:index,:]
+        cv2.imwrite(os.path.join(outputdir,f+'_'+n+'_'+'p0.png'), page1)
+        page2=warped[:,index:,:]
+        cv2.imwrite(os.path.join(outputdir,f+'_'+n+'_'+'p1.png'), page2)
+        print("output to "+outputdir)
+    elif warped.shape[0]*warped.shape[1]>0.38*img.shape[0]*img.shape[1]:
         cnts1,_ = cv2.findContours((labels==label2).astype(np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE )
         rect1=cv2.minAreaRect(cnts1[0]*k)
-        if rect1[1][0]*rect1[1][1]>0.38*img.shape[0]*img.shape[1]:
-            if rect0[0][0]<rect1[0][0]:
-                OutputRect(outputdir,filename + '_0.json',rect0)
-                OutputRect(outputdir,filename + '_1.json',rect1)
+        warped1 = CropRect(img,rect1)
+        print("output to "+outputdir)
+        if warped1.shape[0]*warped1.shape[1]>0.38*img.shape[0]*img.shape[1]:
+            if rect[0][0]<rect1[0][0]:
+                cv2.imwrite(os.path.join(outputdir,f+'_'+n+'_'+'p0.png'), warped)
+                cv2.imwrite(os.path.join(outputdir,f+'_'+n+'_'+'p1.png'), warped1)
             else:
-                OutputRect(outputdir,filename + '_1.json',rect1)
-                OutputRect(outputdir,filename + '_0.json',rect0)
+                cv2.imwrite(os.path.join(outputdir,f+'_'+n+'_'+'p0.png'), warped1)
+                cv2.imwrite(os.path.join(outputdir,f+'_'+n+'_'+'p1.png'), warped)
         else:
-            OutputRect(outputdir,filename + '_0.json',rect0)
+            cv2.imwrite(os.path.join(outputdir,f+'_'+n+'_'+'p0.png'), warped)
             print("warning: only one output for "+target_name)
     else:
         print("warning: no output for "+target_name)
 
-    import pdb;
-
-    pdb.set_trace()

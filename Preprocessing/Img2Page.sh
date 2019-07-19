@@ -1,3 +1,9 @@
 #!/usr/bin/env bash
 
-python Img2Page.py
+InputPath=${InputPath:-'../../data/'}
+
+OutputPath=${OutputPath:-'../../output/'}
+
+rm $OutputPath --recursive
+
+python Img2Page.py --inputpath=$InputPath --outputpath=$OutputPath 2>&1 | tee log_Img2Page.txt

@@ -53,9 +53,9 @@ def CropRect(img, rect):
     # corrdinate of the points in box points after the rectangle has been
     # straightened
     dst_pts = np.array([[0, 0],
-                        [width - 1, 0],
-                        [width - 1, height - 1],
-                        [0, height - 1]], dtype="float32")
+                        [width, 0],
+                        [width, height],
+                        [0, height]], dtype="float32")
 
     # the perspective transformation matrix
     M = cv2.getPerspectiveTransform(src_pts, dst_pts)

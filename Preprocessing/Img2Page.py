@@ -72,7 +72,7 @@ def OutputRect(outputdir,filename,rect,splitPage=False):
             json.dump(rect, outfile)
             print('writing results to ' + os.path.join(outputdir, filename))
 
-def main(inputdir,outputdir):
+def main(filename,inputdir,outputdir):
     #file = 'trainset/1.tif'
     #mean, cov = TrainGaussian(file)
     mean=np.array([20.76549421, 68.80967093])
@@ -80,74 +80,79 @@ def main(inputdir,outputdir):
            [-7.05376449, 46.9934228 ]])
     thr = 2.5
 
-    if not os.path.isdir(outputdir):
-        os.mkdir(outputdir)
-        print('creating directory ' + outputdir)
-    clean_names = lambda x: [i for i in x if i[0] != '.']
+    print("processing ",filename)
 
-    target_names = os.listdir(inputdir)
-    target_names = clean_names(target_names)
-    for target_name in sorted(target_names):
-        print("processing ",target_name)
+    img = cv2.imread(os.path.join(inputdir, filename))
 
-        img = cv2.imread(os.path.join(inputdir, target_name))
+    #downsample, faster processing
+    img_downsample = cv2.pyrDown(cv2.pyrDown(cv2.pyrDown(img)))
+    k = 2 ** 3
+    img_rgb = cv2.cvtColor(img_downsample, cv2.COLOR_BGR2RGB)
+    img_hsv = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2HSV)
 
-        #downsample, faster processing
-        img_downsample = cv2.pyrDown(cv2.pyrDown(cv2.pyrDown(img)))
-        k = 2 ** 3
-        img_rgb = cv2.cvtColor(img_downsample, cv2.COLOR_BGR2RGB)
-        img_hsv = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2HSV)
+    #seg in HS space
+    mask_HS = SegByMahalonobisDistance(img_hsv[:, :, 0:2], mean, cov, thr)
 
-        #seg in HS space
-        mask = SegByMahalonobisDistance(img_hsv[:, :, 0:2], mean, cov, thr)
+    #seg in V space
+    mask_V = img_hsv[:,:,2]>190
 
-        kernel = np.ones((3, 3), np.uint8)
-        mask = cv2.erode(mask.astype(np.uint8), kernel, iterations=1)
+    #combine them
+    mask = mask_HS * mask_V
 
-        ret, labels = cv2.connectedComponents(mask.astype(np.uint8))
-        size1,label1=0,0
-        size2,label2=0,0
-        # find the largest two regions
-        for i in range(1,ret):
-            if np.sum((labels==i).astype(int))>size1:
-                size2,label2=size1,label1
-                size1=np.sum((labels==i).astype(int))
-                label1=i
-            elif np.sum((labels==i).astype(int))>size2:
-                size2=np.sum((labels==i).astype(int))
-                label2=i
-        # fit a rect
-        cnts, _ = cv2.findContours((labels == label1).astype(np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        rect0 = cv2.minAreaRect(cnts[0] * k)
+    ret, labels = cv2.connectedComponents(mask.astype(np.uint8))
+    size1,label1=0,0
+    size2,label2=0,0
+    # find the largest two regions
+    for i in range(1,ret):
+        if np.sum((labels==i).astype(int))>size1:
+            size2,label2=size1,label1
+            size1=np.sum((labels==i).astype(int))
+            label1=i
+        elif np.sum((labels==i).astype(int))>size2:
+            size2=np.sum((labels==i).astype(int))
+            label2=i
+    # fit a rect
+    cnts, _ = cv2.findContours((labels == label1).astype(np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    rect0 = cv2.minAreaRect(cnts[0] * k)
 
-        filename=Zeropadding(target_name)
-        # seg pages to page if necessary
-        if rect0[1][0]*rect0[1][1]>0.8*img.shape[0]*img.shape[1]:
-            print("split rect")
-            OutputRect(outputdir,filename,rect0,splitPage=True)
-        elif rect0[1][0]*rect0[1][1]>0.38*img.shape[0]*img.shape[1]:
-            #page(s) may be detected seperately
-            cnts1,_ = cv2.findContours((labels==label2).astype(np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE )
-            rect1=cv2.minAreaRect(cnts1[0]*k)
-            if rect1[1][0]*rect1[1][1]>0.38*img.shape[0]*img.shape[1]:
-                if rect0[0][0]<rect1[0][0]:
-                    OutputRect(outputdir,filename + '_0.json',rect0)
-                    OutputRect(outputdir,filename + '_1.json',rect1)
-                else:
-                    OutputRect(outputdir,filename + '_1.json',rect1)
-                    OutputRect(outputdir,filename + '_0.json',rect0)
-            else:
+    filename=Zeropadding(filename)
+    # seg pages to page if necessary
+    if rect0[1][0]*rect0[1][1]>0.76*img.shape[0]*img.shape[1]:
+        print("split rect")
+        OutputRect(outputdir,filename,rect0,splitPage=True)
+    elif rect0[1][0]*rect0[1][1]>0.38*img.shape[0]*img.shape[1]:
+        #page(s) may be detected seperately
+        cnts1,_ = cv2.findContours((labels==label2).astype(np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE )
+        rect1=cv2.minAreaRect(cnts1[0]*k)
+        if rect1[1][0]*rect1[1][1]>0.38*img.shape[0]*img.shape[1]:
+            if rect0[0][0]<rect1[0][0]:
                 OutputRect(outputdir,filename + '_0.json',rect0)
-                print("warning: only one output for "+target_name)
+                OutputRect(outputdir,filename + '_1.json',rect1)
+            else:
+                OutputRect(outputdir,filename + '_0.json',rect1)
+                OutputRect(outputdir,filename + '_1.json',rect0)
         else:
-            print("warning: no output for "+target_name)
+            OutputRect(outputdir,filename + '_0.json',rect0)
+            print("\n warning: only one output for "+filename+"\n")
+    else:
+        print("\n warning: no output for "+filename+"\n")
 
 if __name__ == '__main__':
     # construct the argument parse and parse the arguments
     parser = argparse.ArgumentParser(description='Page Detection')
     parser.add_argument('--inputpath', type=str)
     parser.add_argument('--outputpath', type=str)
-
     args = parser.parse_args()
 
-    main(args.inputpath, args.outputpath)
+    #create output file
+    if not os.path.isdir(args.outputpath):
+        os.mkdir(args.outputpath)
+        print('creating directory ' + args.outputpath)
+
+    clean_names = lambda x: [i for i in x if i[0] != '.']
+    filenames = os.listdir(args.inputpath)
+    filenames = sorted(clean_names(filenames))
+    inputdir=[args.inputpath] * len(filenames)
+    outputdir=[args.outputpath] * len(filenames)
+
+    Parallel(n_jobs=36)(map(delayed(main), filenames,inputdir,outputdir))

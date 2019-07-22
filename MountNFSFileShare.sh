@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-sudo mount -t nfs -o nolock,hard 54.183.205.102:/teikoku ../teikoku
-sudo mount -t nfs -o nolock,hard 54.183.205.102:/personnel-records ../personnel-records
+sudo mount -t nfs -o nolock,hard 18.144.66.40:/teikoku ../teikoku
+sudo mount -t nfs -o nolock,hard 18.144.66.40:/personnel-records ../personnel-records
 
 #umount
 ##sudo umount ../teikoku

@@ -1,6 +1,9 @@
 import json
 import cv2
 import numpy as np
+import os
+from joblib import Parallel, delayed
+import argparse
 
 #read image and detected bounding box, output the image with bounding box
 
@@ -47,12 +50,49 @@ def CropRect(img, rect):
     warped = cv2.warpPerspective(img, M, (width, height))
     return warped
 
-img=cv2.imread('../../data/pr1956_f115_0.tif')
-with open('../../output/pr1956_f0115_0_1.json') as jsonfile:
-    rect = json.load(jsonfile)
+def TifFile(jsonfile):
+    jsonfile = jsonfile.split('.')[0]
+    book, f, n ,_ = jsonfile.split('_')
+    f = f[0] + str(int(f[1:]))   #zeropadding
+    n = n
+    return book + '_' + f + '_' + n + '.tif'
 
-box = cv2.boxPoints(tuple(rect))
-box = np.int0(box)
-cv2.drawContours(img, [box], 0, (0,0,255), 5)
+def main(jsonfile,jsondir,imgdir,outputdir):
+    print("processing ", jsonfile)
 
-cv2.imwrite('../../output/tmp1.png',img)
+    scale=4
+
+    img=cv2.imread(os.path.join(imgdir,TifFile(jsonfile)))
+
+    with open(os.path.join(jsondir,jsonfile)) as file:
+        rect = json.load(file)
+
+    box = cv2.boxPoints(tuple(rect))
+    box = np.int0(box/scale)
+    img=cv2.pyrDown(cv2.pyrDown(img))
+
+    cv2.drawContours(img, [box], 0, (0,0,255), 5)
+
+    cv2.imwrite(os.path.join(outputdir,jsonfile.split('.')[0]+'.png'),img)
+
+if __name__ == '__main__':
+    # construct the argument parse and parse the arguments
+    parser = argparse.ArgumentParser(description='Page Detection')
+    parser.add_argument('--jsondir', type=str)
+    parser.add_argument('--imgdir', type=str)
+    parser.add_argument('--outputdir', type=str)
+    args = parser.parse_args()
+
+    #create output file
+    if not os.path.isdir(args.outputdir):
+        os.mkdir(args.outputdir)
+        print('creating directory ' + args.outputdir)
+
+    clean_names = lambda x: [i for i in x if i[0] != '.']
+    jsonfile = os.listdir(args.jsondir)
+    jsonfile = sorted(clean_names(jsonfile))
+    jsondir=[args.jsondir] * len(jsonfile)
+    imgdir=[args.imgdir] * len(jsonfile)
+    outputdir=[args.outputdir] * len(jsonfile)
+
+    Parallel(n_jobs=36)(map(delayed(main), jsonfile,jsondir,imgdir,outputdir))

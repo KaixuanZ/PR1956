@@ -3,6 +3,8 @@ import numpy as np
 import cv2
 import json
 import argparse
+import time
+from joblib import Parallel, delayed
 
 def MahalonobisDistance(x, mean, cov):
     # definition of M-distance, not used in this file
@@ -90,11 +92,13 @@ def main(inputdir,outputdir):
 
         img = cv2.imread(os.path.join(inputdir, target_name))
 
+        #downsample, faster processing
         img_downsample = cv2.pyrDown(cv2.pyrDown(cv2.pyrDown(img)))
         k = 2 ** 3
         img_rgb = cv2.cvtColor(img_downsample, cv2.COLOR_BGR2RGB)
         img_hsv = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2HSV)
 
+        #seg in HS space
         mask = SegByMahalonobisDistance(img_hsv[:, :, 0:2], mean, cov, thr)
 
         kernel = np.ones((3, 3), np.uint8)

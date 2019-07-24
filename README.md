@@ -1,6 +1,6 @@
 # HarvardAHA
 
-/Preprocessing is still under developing, which takes scanned images as input and output row/col images. The output should avoid blanks, pages numbers (any potential meanless class that are regarded as noise).
+/Preprocessing is still under developing, which takes scanned images as input and output row/col images. The output should avoid blanks, pages numbers (any potential meaningless classes that are regarded as noise).
 
 /CNN includes the code for train&test CNN which recognize the class of each row/col images.
 

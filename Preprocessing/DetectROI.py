@@ -78,12 +78,16 @@ def main(pagefilename,imgdir,pagedir,outputdir):
 
     warped, M = CropRect(img, rect)
 
-    # local binarization
-
-    warped = cv2.GaussianBlur(warped, (9, 9), 0)
     warped = cv2.pyrDown(warped)
     scale = 2 ** 1
-    warped = cv2.adaptiveThreshold(warped, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 11, 5)
+    #remove salt-and-pepper noise, reduce the number of CCL areas
+    warped = cv2.medianBlur(warped, 3)
+    warped = cv2.medianBlur(warped, 3)
+    #local binarization
+    warped = cv2.adaptiveThreshold(warped, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 11, 4)
+    #filling small holes on vertical lines
+    kernel = np.ones([11, 1], np.uint8)
+    warped = cv2.morphologyEx(warped, cv2.MORPH_CLOSE, kernel)
 
     # CCL
     ret, labels = cv2.connectedComponents(warped)  # CCL
@@ -93,7 +97,7 @@ def main(pagefilename,imgdir,pagedir,outputdir):
         if labels[labels == i].shape[0] > warped.shape[0]:  # remove words (small CCL regions)
             HRange, WRange = np.where(labels == i)
             if (max(HRange) - min(HRange)) > 0.5 * warped.shape[0] and (max(HRange) - min(HRange)) / (
-                    max(WRange) - min(WRange)) > 2:
+                    max(WRange) - min(WRange)) > 8:
                 w = (max(WRange) + min(WRange)) / 2
                 features[i] = min(w, warped.shape[1] - w)
 
@@ -150,7 +154,7 @@ if __name__ == '__main__':
     clean_names = lambda x: [i for i in x if i[0] != '.']
     pagefilenames = os.listdir(args.pagedir)
     pagefilenames = sorted(clean_names(pagefilenames))
-    pagefilenames = pagefilenames[50:]  #start processing at last checkpoint
+    #pagefilenames = pagefilenames[50:]  #start processing at last checkpoint
     imgdir = [args.imgdir] * len(pagefilenames)
     pagedir = [args.pagedir] * len(pagefilenames)
     outputdir = [args.outputdir] * len(pagefilenames)

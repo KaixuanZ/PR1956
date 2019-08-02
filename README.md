@@ -7,3 +7,5 @@
 /GraphicalModel is used on top of CNN to further improve the classification accuracy by utilizing the information between adjacent rows/cols.
 
 /OCR is not developed yet, which should take a row/col image as input and output the characters in that image.
+
+Master branch contains the code that generally works for most books, if you need code for a particular book, go to the correspondent branch.

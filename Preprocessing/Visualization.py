@@ -4,6 +4,7 @@ import numpy as np
 import os
 from joblib import Parallel, delayed
 import argparse
+import multiprocessing
 
 #read image and detected bounding box, output the image with bounding box
 
@@ -53,7 +54,7 @@ def CropRect(img, rect):
 def TifFile(jsonfile):
     jsonfile = jsonfile.split('.')[0]
     book, f, n ,_ = jsonfile.split('_')
-    f = f[0] + str(int(f[1:]))   #zeropadding
+    f = f[0] + str(int(f[1:]))
     n = n
     return book + '_' + f + '_' + n + '.tif'
 
@@ -95,4 +96,4 @@ if __name__ == '__main__':
     imgdir=[args.imgdir] * len(jsonfile)
     outputdir=[args.outputdir] * len(jsonfile)
 
-    Parallel(n_jobs=36)(map(delayed(main), jsonfile,jsondir,imgdir,outputdir))
+    Parallel(n_jobs=multiprocessing.cpu_count()-1)(map(delayed(main), jsonfile,jsondir,imgdir,outputdir))

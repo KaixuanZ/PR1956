@@ -4,6 +4,7 @@ import numpy as np
 import os
 from joblib import Parallel, delayed
 import argparse
+import multiprocessing
 
 # read image and detected bounding box, output the image with bounding box
 
@@ -53,14 +54,17 @@ def CropRect(img, rect):
 
 
 def ExpandCol(rect,n):
+    rect = [list(rect[0]), list(rect[1]), rect[2]]
     if n>1:
-        rect = [list(rect[0]), list(rect[1]), rect[2]]
         if rect[1][0] > rect[1][1]:
             rect[1][1] = rect[1][1] * (n+1) / (n-1)
         else:
             rect[1][0] = rect[1][0] * (n+1) / (n-1)
     else:
-        pass
+        if rect[1][0] > rect[1][1]:
+            rect[1][1] = rect[1][1] + rect[1][0] * 0.1325 * 2
+        else:
+            rect[1][0] = rect[1][0] + rect[1][1] * 0.1325 * 2
     return tuple(rect)
 
 def GetImgFilename(jsonfile):
@@ -84,7 +88,7 @@ def main(pagefilename,imgdir,pagedir,outputdir):
     warped = cv2.medianBlur(warped, 3)
     warped = cv2.medianBlur(warped, 3)
     #local binarization
-    warped = cv2.adaptiveThreshold(warped, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 11, 4)
+    warped = cv2.adaptiveThreshold(warped, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 15, 4)
     #filling small holes on vertical lines
     kernel = np.ones([11, 1], np.uint8)
     warped = cv2.morphologyEx(warped, cv2.MORPH_CLOSE, kernel)
@@ -96,8 +100,8 @@ def main(pagefilename,imgdir,pagedir,outputdir):
     for i in range(1, ret + 1):  # O(n^3), that's why we need downsampling
         if labels[labels == i].shape[0] > warped.shape[0]:  # remove words (small CCL regions)
             HRange, WRange = np.where(labels == i)
-            if (max(HRange) - min(HRange)) > 0.5 * warped.shape[0] and (max(HRange) - min(HRange)) / (
-                    max(WRange) - min(WRange)) > 8:
+            if (max(HRange) - min(HRange)) > 0.4 * warped.shape[0] and (max(HRange) - min(HRange)) / (
+                    max(WRange) - min(WRange)) > 20 and min(WRange)>0.1*warped.shape[1] and max(WRange)<0.9*warped.shape[1]:
                 w = (max(WRange) + min(WRange)) / 2
                 features[i] = min(w, warped.shape[1] - w)
 
@@ -159,4 +163,4 @@ if __name__ == '__main__':
     pagedir = [args.pagedir] * len(pagefilenames)
     outputdir = [args.outputdir] * len(pagefilenames)
 
-    Parallel(n_jobs=7)(map(delayed(main), pagefilenames,imgdir,pagedir,outputdir))
+    Parallel(n_jobs=multiprocessing.cpu_count()-1)(map(delayed(main), pagefilenames,imgdir,pagedir,outputdir))

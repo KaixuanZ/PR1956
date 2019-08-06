@@ -53,27 +53,25 @@ def CropRect(img, rect):
 
 def TifFile(jsonfile):
     jsonfile = jsonfile.split('.')[0]
-    book, f, n ,_ = jsonfile.split('_')
+    book, f, n ,_  = jsonfile.split('_')
     f = f[0] + str(int(f[1:]))
     n = n
     return book + '_' + f + '_' + n + '.tif'
 
 def main(jsonfile,jsondir,imgdir,outputdir):
     print("processing ", jsonfile)
-
-    scale=4
-
-    img=cv2.imread(os.path.join(imgdir,TifFile(jsonfile)))
-
-    with open(os.path.join(jsondir,jsonfile)) as file:
-        rect = json.load(file)
-
-    box = cv2.boxPoints(tuple(rect))
-    box = np.int0(box/scale)
-    img=cv2.pyrDown(cv2.pyrDown(img))
-
-    cv2.drawContours(img, [box], 0, (0,0,255), 5)
-
+    files=os.listdir(os.path.join(jsondir,jsonfile))
+    scale = 4
+    #import pdb;pdb.set_trace()
+    img = cv2.imread(os.path.join(imgdir, TifFile(jsonfile)))
+    img = cv2.pyrDown(cv2.pyrDown(img))
+    for file in files:
+        with open(os.path.join(jsondir,jsonfile,file)) as file:
+            rect = json.load(file)
+        box = cv2.boxPoints(tuple(rect))
+        box = np.int0(box/scale)
+        cv2.drawContours(img, [box], 0, (0,0,255), 5)
+    #import pdb;pdb.set_trace()
     cv2.imwrite(os.path.join(outputdir,jsonfile.split('.')[0]+'.png'),img)
 
 if __name__ == '__main__':
@@ -96,4 +94,5 @@ if __name__ == '__main__':
     imgdir=[args.imgdir] * len(jsonfile)
     outputdir=[args.outputdir] * len(jsonfile)
 
-    Parallel(n_jobs=multiprocessing.cpu_count()-1)(map(delayed(main), jsonfile,jsondir,imgdir,outputdir))
+    Parallel(n_jobs=multiprocessing.cpu_count())(map(delayed(main), jsonfile,jsondir,imgdir,outputdir))
+    #multiprocessing.cpu_count()-1

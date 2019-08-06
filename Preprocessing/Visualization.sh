@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
-ImgDir=${ImgDir:-'../../data/'}
+ImgDir=${ImgDir:-'../../personnel-records/1956/scans/parsed'}
 
-JsonDir=${JsonDir:-'../../output/'}
+JsonDir=${JsonDir:-'../../personnel-records/1956/seg/col_rect'}
 
-OutputDir=${OutputDir:-'../../Visualization'}
+OutputDir=${OutputDir:-'../../personnel-records/1956/visualization'}
 
-rm $OutputPath --recursive
+rm -rf $OutputDir
 
 python3 Visualization.py --imgdir=$ImgDir --jsondir=$JsonDir --outputdir=$OutputDir

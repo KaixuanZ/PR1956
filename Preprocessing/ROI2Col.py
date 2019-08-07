@@ -64,7 +64,8 @@ def ColIndex(img_b,ColWHRatio=2/15):
     i=1
     while i<=4:
         if  H*ColWHRatio*(i+0.5)<W:
-            l,r=int(H*ColWHRatio*(i-0.25)),int(H*ColWHRatio*(i+0.25))
+            #search for vertical line
+            l,r=int(H*ColWHRatio*(i-0.1)),int(H*ColWHRatio*(i+0.1))
             tmp=bgPerCol[l:r]
             index.append(l+np.argmax(tmp))
             i+=1
@@ -89,14 +90,16 @@ def main(ROIfilename,imgdir,ROIdir,outputdir):
     warped, M = CropRect(img, rect)
     M_inv = np.linalg.inv(M)
 
-    #local binarization
+    #denoise and local binarization
+    warped = cv2.medianBlur(warped, 3)
+    warped = cv2.medianBlur(warped, 3)
     warped_b = cv2.adaptiveThreshold(warped, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 15, 4)
 
     H,W=warped_b.shape
     colIndex = ColIndex(warped_b)
     for i in range(len(colIndex) - 1):
         col = warped_b[:, colIndex[i] + int(warped_b.shape[1] / 100):colIndex[i + 1] - int(warped_b.shape[1] / 100)]
-        if np.max(np.sum(col, axis=0)) / 255 > 750:  # at least one col has more than 750 pixels belongs to 1 (foreground)
+        if np.max(np.sum(col, axis=0)) / 255 > 500:  # at least one col has more than 500 pixels belongs to 1 (foreground)
             box_col=[[colIndex[i],0],[colIndex[i],H],[colIndex[i+1],0],[colIndex[i+1],H]]
             box_col=OrderPoints(np.array(box_col))
 

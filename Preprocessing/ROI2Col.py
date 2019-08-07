@@ -58,15 +58,20 @@ def GetImgFilename(jsonfile):
     return book + '_' + f + '_' + n + '.tif'
 
 def ColIndex(img_b,ColWHRatio=2/15):
+    theta = range(-90, 271, 30)
     H,W=img_b.shape
-    bgPerCol=np.sum(img_b,axis=0)
+
+    fgPerCol=np.sum(img_b,axis=0)
+    fgPerCol = np.convolve(fgPerCol, np.sin(np.deg2rad(theta)))
+    fgPerCol = fgPerCol[int(len(theta) / 2):]
+
     index=[0]
     i=1
     while i<=4:
         if  H*ColWHRatio*(i+0.5)<W:
             #search for vertical line
-            l,r=int(H*ColWHRatio*(i-0.1)),int(H*ColWHRatio*(i+0.1))
-            tmp=bgPerCol[l:r]
+            l,r=int(H*ColWHRatio*(i-0.25)),int(H*ColWHRatio*(i+0.25))
+            tmp=fgPerCol[l:r]
             index.append(l+np.argmax(tmp))
             i+=1
         else:
@@ -75,6 +80,8 @@ def ColIndex(img_b,ColWHRatio=2/15):
     return index
 
 def main(ROIfilename,imgdir,ROIdir,outputdir):
+    threshold1=10  #threshold for binarization
+    threshold2=100 #threshold for
     print("processing "+ROIfilename)
     outputdir=os.path.join(outputdir,ROIfilename.split('.')[0])
     if not os.path.isdir(outputdir):
@@ -90,16 +97,14 @@ def main(ROIfilename,imgdir,ROIdir,outputdir):
     warped, M = CropRect(img, rect)
     M_inv = np.linalg.inv(M)
 
-    #denoise and local binarization
-    warped = cv2.medianBlur(warped, 3)
-    warped = cv2.medianBlur(warped, 3)
-    warped_b = cv2.adaptiveThreshold(warped, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 15, 4)
+    #local binarization
+    warped_b = cv2.adaptiveThreshold(warped, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 15, threshold1)
 
     H,W=warped_b.shape
     colIndex = ColIndex(warped_b)
     for i in range(len(colIndex) - 1):
         col = warped_b[:, colIndex[i] + int(warped_b.shape[1] / 100):colIndex[i + 1] - int(warped_b.shape[1] / 100)]
-        if np.max(np.sum(col, axis=0)) / 255 > 500:  # at least one col has more than 500 pixels belongs to 1 (foreground)
+        if i<len(colIndex) - 2 or np.max(np.sum(col, axis=0)) / 255 > threshold2:
             box_col=[[colIndex[i],0],[colIndex[i],H],[colIndex[i+1],0],[colIndex[i+1],H]]
             box_col=OrderPoints(np.array(box_col))
 
@@ -137,4 +142,4 @@ if __name__ == '__main__':
     ROIdir = [args.ROIdir] * len(ROIfilenames)
     outputdir = [args.outputdir] * len(ROIfilenames)
 
-    Parallel(n_jobs=multiprocessing.cpu_count()-1)(map(delayed(main), ROIfilenames,imgdir,ROIdir,outputdir))
+    Parallel(n_jobs=multiprocessing.cpu_count())(map(delayed(main), ROIfilenames,imgdir,ROIdir,outputdir))

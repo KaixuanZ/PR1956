@@ -58,7 +58,7 @@ def GetImgFilename(jsonfile):
     return book + '_' + f + '_' + n + '.tif'
 
 def ColIndex(img_b,ColWHRatio=2/15):
-    theta = range(-90, 271, 30)
+    theta = range(-90, 271, 24)
     H,W=img_b.shape
 
     fgPerCol=np.sum(img_b,axis=0)
@@ -67,21 +67,18 @@ def ColIndex(img_b,ColWHRatio=2/15):
 
     index=[0]
     i=1
-    while i<=4:
-        if  H*ColWHRatio*(i+0.5)<W:
-            #search for vertical line
-            l,r=int(H*ColWHRatio*(i-0.25)),int(H*ColWHRatio*(i+0.25))
-            tmp=fgPerCol[l:r]
-            index.append(l+np.argmax(tmp))
-            i+=1
-        else:
-            break
+    while H*ColWHRatio*(i+0.5)<W:
+        #search for vertical line
+        l,r=int(H*ColWHRatio*(i-0.25)),int(H*ColWHRatio*(i+0.25))
+        tmp=fgPerCol[l:r]
+        index.append(l+np.argmax(tmp))
+        i+=1
     index.append(W)
     return index
 
 def main(ROIfilename,imgdir,ROIdir,outputdir):
     threshold1=10  #threshold for binarization
-    threshold2=100 #threshold for
+    threshold2=200 #threshold for deciding if the last col has content
     print("processing "+ROIfilename)
     outputdir=os.path.join(outputdir,ROIfilename.split('.')[0])
     if not os.path.isdir(outputdir):
@@ -98,12 +95,12 @@ def main(ROIfilename,imgdir,ROIdir,outputdir):
     M_inv = np.linalg.inv(M)
 
     #local binarization
-    warped_b = cv2.adaptiveThreshold(warped, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 15, threshold1)
+    warped_b = cv2.adaptiveThreshold(warped, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 15, threshold1)
 
     H,W=warped_b.shape
     colIndex = ColIndex(warped_b)
     for i in range(len(colIndex) - 1):
-        col = warped_b[:, colIndex[i] + int(warped_b.shape[1] / 100):colIndex[i + 1] - int(warped_b.shape[1] / 100)]
+        col = warped_b[:, colIndex[i] + int(W / 50):colIndex[i + 1] - int(W / 50)]
         if i<len(colIndex) - 2 or np.max(np.sum(col, axis=0)) / 255 > threshold2:
             box_col=[[colIndex[i],0],[colIndex[i],H],[colIndex[i+1],0],[colIndex[i+1],H]]
             box_col=OrderPoints(np.array(box_col))

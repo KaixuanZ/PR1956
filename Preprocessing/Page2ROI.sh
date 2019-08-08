@@ -8,4 +8,4 @@ OutputPath=${OutputPath:-'../../personnel-records/1956/seg/ROI'}
 
 rm $OutputPath --recursive
 
-python3 DetectROI.py --imgdir=$ImgPath --pagedir=$PagePath --outputdir=$OutputPath 2>&1 | tee log_ROI.txt
+python3 Page2ROI.py --imgdir=$ImgPath --pagedir=$PagePath --outputdir=$OutputPath 2>&1 | tee log_ROI.txt

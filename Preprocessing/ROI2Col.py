@@ -5,52 +5,9 @@ import os
 from joblib import Parallel, delayed
 import argparse
 import multiprocessing
+import Rect
 
 # read image and detected bounding box, output the image with bounding box
-
-def OrderPoints(pts):
-    # sort the points based on their x-coordinates
-    xSorted = pts[np.argsort(pts[:, 0]), :]
-
-    # grab the left-most and right-most points from the sorted
-    # x-roodinate points
-    leftMost = xSorted[:2, :]
-    rightMost = xSorted[2:, :]
-
-    # now, sort the left-most coordinates according to their
-    # y-coordinates so we can grab the top-left and bottom-left
-    # points, respectively
-    leftMost = leftMost[np.argsort(leftMost[:, 1]), :]
-    (tl, bl) = leftMost
-
-    rightMost = rightMost[np.argsort(rightMost[:, 1]), :]
-    (tr, br) = rightMost
-
-    return np.array([tl, tr, br, bl])
-
-
-def CropRect(img, rect):
-    box = cv2.boxPoints(tuple(rect))
-    box = OrderPoints(box)
-    # get width and height of the detected rectangle
-    if rect[2] < -45:
-        height, width = int(rect[1][0]), int(rect[1][1])
-    else:
-        width, height = int(rect[1][0]), int(rect[1][1])
-
-    src_pts = box.astype("float32")
-    # corrdinate of the points in box points after the rectangle has been straightened
-    dst_pts = np.array([[0, 0],
-                        [width, 0],
-                        [width, height],
-                        [0, height]], dtype="float32")
-
-    # the perspective transformation matrix
-    M = cv2.getPerspectiveTransform(src_pts, dst_pts)
-
-    # directly warp the rotated rectangle to get the straightened rectangle
-    warped = cv2.warpPerspective(img, M, (width, height))
-    return warped, M
 
 def GetImgFilename(jsonfile):
     book, f, n , p = jsonfile.split('.')[0].split('_')
@@ -91,7 +48,7 @@ def main(ROIfilename,imgdir,ROIdir,outputdir):
     with open(os.path.join(ROIdir,ROIfilename)) as file:
         rect = json.load(file)
 
-    warped, M = CropRect(img, rect)
+    warped, M = Rect.CropRect(img, rect)
     M_inv = np.linalg.inv(M)
 
     #local binarization
@@ -102,16 +59,12 @@ def main(ROIfilename,imgdir,ROIdir,outputdir):
     for i in range(len(colIndex) - 1):
         col = warped_b[:, colIndex[i] + int(W / 50):colIndex[i + 1] - int(W / 50)]
         if i<len(colIndex) - 2 or np.max(np.sum(col, axis=0)) / 255 > threshold2:
-            box_col=[[colIndex[i],0],[colIndex[i],H],[colIndex[i+1],0],[colIndex[i+1],H]]
-            box_col=OrderPoints(np.array(box_col))
+            box_col=[[colIndex[i],0],[colIndex[i],H-1],[colIndex[i+1],0],[colIndex[i+1],H-1]]
 
-            #get the location of box_col in original image
-            box_col = np.concatenate((box_col, np.ones([4, 1])), axis=1)
-            box_col = np.dot(M_inv[0:2, :], box_col.T).T
-            box_col = np.int0(box_col + 0.5)
+            #get the rect of box_col in original image
+            rect=Rect.RectOnSrcImg(box_col, M)
 
             #save the rect as json
-            rect=cv2.minAreaRect(box_col)
             outputpath=os.path.join(outputdir, ROIfilename.split('.')[0]+'_'+str(i)+'.json')
             with open(outputpath, 'w') as outfile:
                 json.dump(rect, outfile)

@@ -4,54 +4,10 @@ import numpy as np
 import os
 from joblib import Parallel, delayed
 import argparse
+import Rect
 import multiprocessing
 
 # read image and detected bounding box, output the image with bounding box
-
-def OrderPoints(pts):
-    # sort the points based on their x-coordinates
-    xSorted = pts[np.argsort(pts[:, 0]), :]
-
-    # grab the left-most and right-most points from the sorted
-    # x-roodinate points
-    leftMost = xSorted[:2, :]
-    rightMost = xSorted[2:, :]
-
-    # now, sort the left-most coordinates according to their
-    # y-coordinates so we can grab the top-left and bottom-left
-    # points, respectively
-    leftMost = leftMost[np.argsort(leftMost[:, 1]), :]
-    (tl, bl) = leftMost
-
-    rightMost = rightMost[np.argsort(rightMost[:, 1]), :]
-    (tr, br) = rightMost
-
-    return np.array([tl, tr, br, bl])
-
-
-def CropRect(img, rect):
-    box = cv2.boxPoints(tuple(rect))
-    box = OrderPoints(box)
-    # get width and height of the detected rectangle
-    if rect[2] < -45:
-        height, width = int(rect[1][0]), int(rect[1][1])
-    else:
-        width, height = int(rect[1][0]), int(rect[1][1])
-
-    src_pts = box.astype("float32")
-    # corrdinate of the points in box points after the rectangle has been straightened
-    dst_pts = np.array([[0, 0],
-                        [width, 0],
-                        [width, height],
-                        [0, height]], dtype="float32")
-
-    # the perspective transformation matrix
-    M = cv2.getPerspectiveTransform(src_pts, dst_pts)
-
-    # directly warp the rotated rectangle to get the straightened rectangle
-    warped = cv2.warpPerspective(img, M, (width, height))
-    return warped, M
-
 
 def ExpandCol(rect,n):
     rect = [list(rect[0]), list(rect[1]), rect[2]]
@@ -80,7 +36,7 @@ def main(pagefilename,imgdir,pagedir,outputdir):
     with open(os.path.join(pagedir,pagefilename)) as file:
         rect = json.load(file)
 
-    warped, M = CropRect(img, rect)
+    warped, M = Rect.CropRect(img, rect)
 
     warped = cv2.pyrDown(warped)
     scale = 2 ** 1
@@ -127,16 +83,11 @@ def main(pagefilename,imgdir,pagedir,outputdir):
     rect = cv2.minAreaRect(lines)
     rect = ExpandCol(rect,len(features))
 
-    box = cv2.boxPoints(tuple(rect))
-    box = OrderPoints(box) * scale
+    box = cv2.boxPoints(tuple(rect)) * scale
 
-    box = np.concatenate((box, np.ones([4, 1])), axis=1)
-    M_inv = np.linalg.inv(M)
-    box = np.dot(M_inv[0:2, :], box.T).T
-    box = np.int0(box + 0.5)
+    rect=Rect.RectOnSrcImg(box, M)
 
     #save the rect as json
-    rect=cv2.minAreaRect(box)
     with open(os.path.join(outputdir, pagefilename), 'w') as outfile:
         json.dump(rect, outfile)
         print('writing results to ' + os.path.join(outputdir, pagefilename))

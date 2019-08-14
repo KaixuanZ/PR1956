@@ -11,11 +11,12 @@ import Rect
 # read image and detected bounding box, output the image with bounding box
 
 class WarpedImg(object):
-    def __init__(self, warpedImg_b, M, rowWidth=None):
+    def __init__(self, warpedImg_b, M, colRect, rowWidth=None):
         self.M = M  # transformation from the original img to this wapred img
         self.warpedImg_b = warpedImg_b  # used for initial row segmention
         self.rowRects = []  # rect of each row images in original img
         self.rowWidth = rowWidth
+        self.colRect = colRect
 
     def Seg2Rows(self, threshold=10):
         # threshold is for the initial segmentation of row images
@@ -70,7 +71,7 @@ class WarpedImg(object):
 
     def SegWideRows(self, img_b, thetas=list(range(-5, 0)) + list(range(1, 6))):
         for i in range(len(self.rowRects) - 1, -1, -1):
-            if self.rowRects[i][1][1] >= 2 * self.rowWidth:
+            if GetRowHeight(self.rowRects[i]) >= 2 * self.rowWidth:
                 rowRect = self.rowRects[i]
                 rowNum = []
                 for theta in thetas:
@@ -78,24 +79,31 @@ class WarpedImg(object):
                     rowNum.append(len(wideRow.rowRects))
                 if max(rowNum) > 1:
                     theta = thetas[rowNum.index(max(rowNum))]
-                    wideRow = self.SegWideRow(img_b, rowRect, theta)
+                    wideRow = self.SegWideRow(img_b, rowRect, theta, 1)
                     self.rowRects = self.rowRects[0:i] + wideRow.rowRects + self.rowRects[i + 1:]
 
-    def SegWideRow(self, img_b, rowRect, theta):
+    def SegWideRow(self, img_b, rowRect, theta, f=0):
         rect = [list(rowRect[0]), list(rowRect[1]), rowRect[2]]
-        rect[1][1] += 40
+        if rect[2]<-45:
+            rect[1][0] += 40
+        else:
+            rect[1][1] += 40
         rect[2] += theta
         warped_b, M = Rect.CropRect(img_b, rect)
-
         wideRow = WarpedImg(warped_b, M, self.rowWidth)
         wideRow.Seg2Rows()
-        # move the center of rows so that they location within the col
-        for i in range(len(wideRow.rowRects)):
-            rect = wideRow.rowRects[i]
-            vec = np.array([rect[0][0] - rowRect[0][0], rect[0][1] - rowRect[0][1]])
-            vec = vec * np.tan(np.deg2rad(theta))
-            vec = [vec[1], -vec[0]]
-            wideRow.rowRects[i] = [[rect[0][0] + vec[0], rect[0][1] + vec[1]], rect[1], rect[2]]
+        # move the center of rows so that they locate within the col
+        if f:
+            rot = (rowRect[2] - self.colRect[2]) % 90  # relative rotation of row to col (rowRect[2]=colRect[2]+rot)
+            if rot > 45:
+                rot -= 90
+            rot += theta  # relative rotation of rect to col
+            for i in range(len(wideRow.rowRects)):
+                rect = wideRow.rowRects[i]
+                vec = np.array([rect[0][0] - rowRect[0][0], rect[0][1] - rowRect[0][1]])
+                vec = vec * np.tan(np.deg2rad(rot))
+                vec = [vec[1], -vec[0]]
+                wideRow.rowRects[i] = [[rect[0][0] + vec[0], rect[0][1] + vec[1]], rect[1], rect[2]]
         return wideRow
 
     def CheckRowIndex(self, rowLeftIndex, rowRightIndex):
@@ -129,6 +137,11 @@ class WarpedImg(object):
                 print('output rowRect to ' + os.path.join(outputdir,rowJsonName))
             i+=1
 
+def GetRowHeight(rect):
+    if rect[2]<-45:
+        return rect[1][0]
+    else:
+        return rect[1][1]
 
 def Binraization(img):
     img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -156,9 +169,10 @@ def main(coldir,imgdir,outputdir):
         # detect verticle lines
         col_b, M = Rect.CropRect(img_b, colRect)
 
-        col = WarpedImg(col_b, M)
+        col = WarpedImg(col_b, M, colRect)
         col.Seg2Rows()
         col.SegWideRows(img_b)
+        col.SegWideRows(cv2.medianBlur(img_b, 5))
         col.SaveRowJson(colRectJson,outputdir)
 
 if __name__ == '__main__':

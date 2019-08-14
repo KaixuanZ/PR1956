@@ -89,6 +89,13 @@ class WarpedImg(object):
 
         wideRow = WarpedImg(warped_b, M, self.rowWidth)
         wideRow.Seg2Rows()
+        # move the center of rows so that they location within the col
+        for i in range(len(wideRow.rowRects)):
+            rect = wideRow.rowRects[i]
+            vec = np.array([rect[0][0] - rowRect[0][0], rect[0][1] - rowRect[0][1]])
+            vec = vec * np.tan(np.deg2rad(theta))
+            vec = [vec[1], -vec[0]]
+            wideRow.rowRects[i] = [[rect[0][0] + vec[0], rect[0][1] + vec[1]], rect[1], rect[2]]
         return wideRow
 
     def CheckRowIndex(self, rowLeftIndex, rowRightIndex):

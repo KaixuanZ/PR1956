@@ -110,39 +110,49 @@ class WarpedImg(object):
             rect = Rect.RectOnSrcImg(box, self.M)
             self.rowRects.append(rect)
 
-    def SaveRowJson(self, path='rowRects'):
-        i = 0
+    def SaveRowJson(self, colJsonName, outputdir='tmp'):
+        if not os.path.isdir(outputdir):
+            os.mkdir(outputdir)
+            print('creating directory ' + outputdir)
+        i=0
         for rowRect in self.rowRects:
-            with open(path + '/row' + str(i) + '.json', 'w') as outfile:
+            rowJsonName=colJsonName.split('.')[0]+'_'+str(i).zfill(3)+'.json'
+            with open(os.path.join(outputdir,rowJsonName), 'w') as outfile:
                 json.dump(rowRect, outfile)
-            i += 1
+                print('output rowRect to ' + os.path.join(outputdir,rowJsonName))
+            i+=1
 
 
 def Binraization(img):
     img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     # local binarization
     img_b = cv2.adaptiveThreshold(img_gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 15, 10)
-    cv2.imshow('img_b', img_b)
-    cv2.waitKey(1)
-    import pdb;
-    pdb.set_trace()
     return img_b
 
-def main():
-    img = cv2.imread('pr1956_f53_3.tif')
+def GetImgFilename(jsonfile):
+    book, f, n , p ,c = jsonfile.split('.')[0].split('_')
+    f = f[0] + str(int(f[1:]))
+    return book + '_' + f + '_' + n + '.tif'
 
-    with open('pr1956_f0053_3_0_3.json') as file:
-        rect = json.load(file)
+def main(coldir,imgdir,outputdir):
+    clean_names = lambda x: [i for i in x if i[0] != '.']
+    colRectJsons = sorted(clean_names(os.listdir(coldir)))
 
-    img_b = Binraization(img)
-    # detect verticle lines
-    warped_b, M = Rect.CropRect(img_b, rect)
+    imgpath = os.path.join(imgdir,GetImgFilename(colRectJsons[0]))
+    img = cv2.imread(imgpath)
 
-    col = WarpedImg(warped_b, M)
-    col.Seg2Rows()
-    col.SaveRowJson('rowRects')
-    col.SegWideRows(img_b)
-    col.SaveRowJson('rowRects1')
+    for colRectJson in colRectJsons:
+        with open(os.path.join(coldir,colRectJson)) as file:
+            colRect = json.load(file)
+
+        img_b = Binraization(img)
+        # detect verticle lines
+        col_b, M = Rect.CropRect(img_b, colRect)
+
+        col = WarpedImg(col_b, M)
+        col.Seg2Rows()
+        col.SegWideRows(img_b)
+        col.SaveRowJson(colRectJson,outputdir)
 
 if __name__ == '__main__':
     # construct the argument parse and parse the arguments
@@ -158,13 +168,16 @@ if __name__ == '__main__':
         print('creating directory ' + args.outputdir)
 
     clean_names = lambda x: [i for i in x if i[0] != '.']
-    colfilenames = os.listdir(args.coldir)
-    colfilenames = sorted(clean_names(colfilenames))
-    #pagefilenames = pagefilenames[50:]  #start processing at last checkpoint
-    imgdir = [args.imgdir] * len(colfilenames)
-    ROIdir = [args.ROIdir] * len(colfilenames)
-    outputdir = [args.outputdir] * len(colfilenames)
+    coldir = os.listdir(args.coldir)
+    coldir = coldir[1:2]
+    coldir = sorted(clean_names(coldir))
 
-    Parallel(n_jobs=multiprocessing.cpu_count())(map(delayed(main), colfilenames,imgdir,ROIdir,outputdir))
+    outputdir = [os.path.join(args.outputdir, dir) for dir in coldir]
+    coldir = [os.path.join(args.coldir, dir) for dir in coldir]
+    imgdir = [args.imgdir] * len(coldir)
+
+    Parallel(n_jobs=1)(map(delayed(main), coldir, imgdir, outputdir))
+
+    #Parallel(n_jobs=multiprocessing.cpu_count())(map(delayed(main), coldirs,imgdir,outputdir))
 
 

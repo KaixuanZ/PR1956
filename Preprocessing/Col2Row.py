@@ -139,7 +139,8 @@ class WarpedImg(object):
             rowJsonName=colJsonName.split('.')[0]+'_'+str(i).zfill(3)+'.json'
             with open(os.path.join(outputdir,rowJsonName), 'w') as outfile:
                 json.dump(rowRect, outfile)
-                print('output rowRect to ' + os.path.join(outputdir,rowJsonName))
+                if i%10==0:
+                    print('output rowRect to ' + os.path.join(outputdir,rowJsonName))
             i+=1
 
 def GetRowHeight(rect):
@@ -195,14 +196,14 @@ if __name__ == '__main__':
 
     clean_names = lambda x: [i for i in x if i[0] != '.']
     coldir = os.listdir(args.coldir)
-    coldir = coldir[1:2]
+    coldir = coldir[0:100:5]
     coldir = sorted(clean_names(coldir))
 
     outputdir = [os.path.join(args.outputdir, dir) for dir in coldir]
     coldir = [os.path.join(args.coldir, dir) for dir in coldir]
     imgdir = [args.imgdir] * len(coldir)
 
-    Parallel(n_jobs=1)(map(delayed(main), coldir, imgdir, outputdir))
+    Parallel(n_jobs=2)(map(delayed(main), coldir, imgdir, outputdir))
 
     #Parallel(n_jobs=multiprocessing.cpu_count())(map(delayed(main), coldirs,imgdir,outputdir))
 

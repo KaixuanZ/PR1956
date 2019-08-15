@@ -45,7 +45,7 @@ class WarpedImg(object):
             for i in range(len(rowLeftIndex)):
                 RowHeights.append(rowRightIndex[i] - rowLeftIndex[i])
             if self.rowWidth is None:
-                self.rowWidth = np.percentile(RowHeights, 30)  # estimation of row width
+                self.rowWidth = np.percentile(RowHeights, 50)  # estimation of row width
             for i in range(len(RowHeights) - 1, 0 - 1, -1):
                 if RowHeights[i] < self.rowWidth * 0.7:  # small row: combine it with the closest row
                     if i == 0:
@@ -69,7 +69,7 @@ class WarpedImg(object):
                         RowHeights.pop(i)
                         RowHeights[i] = rowRightIndex[i] - rowLeftIndex[i]
 
-    def SegWideRows(self, img_b, thetas=list(range(-5, 0)) + list(range(1, 6))):
+    def SegWideRows(self, img_b, thetas=list(range(-4, 5))):
         for i in range(len(self.rowRects) - 1, -1, -1):
             if GetRowHeight(self.rowRects[i]) >= 2 * self.rowWidth:
                 rowRect = self.rowRects[i]
@@ -78,7 +78,12 @@ class WarpedImg(object):
                     wideRow = self.SegWideRow(img_b, rowRect, theta)
                     rowNum.append(len(wideRow.rowRects))
                 if max(rowNum) > 1:
-                    theta = thetas[rowNum.index(max(rowNum))]
+                    #find the index that's closest to theta=0
+                    index = [i for i, x in enumerate(rowNum) if x == max(rowNum)]
+                    dict = {}
+                    for ii in index:
+                        dict[ii] = abs(ii - (len(thetas) - 1) / 2)
+                    theta = thetas[min(dict, key=dict.get)]
                     wideRow = self.SegWideRow(img_b, rowRect, theta, 1)
                     self.rowRects = self.rowRects[0:i] + wideRow.rowRects + self.rowRects[i + 1:]
 
@@ -90,7 +95,7 @@ class WarpedImg(object):
             rect[1][1] += 40
         rect[2] += theta
         warped_b, M = Rect.CropRect(img_b, rect)
-        wideRow = WarpedImg(warped_b, M, self.rowWidth)
+        wideRow = WarpedImg(warped_b, M, self.colRect, self.rowWidth)
         wideRow.Seg2Rows()
         # move the center of rows so that they locate within the col
         if f:

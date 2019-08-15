@@ -17,6 +17,7 @@ class WarpedImg(object):
         self.rowRects = []  # rect of each row images in original img
         self.rowWidth = rowWidth
         self.colRect = colRect
+        self.rowHeights = []
 
     def Seg2Rows(self, threshold=10):
         # threshold is for the initial segmentation of row images
@@ -33,41 +34,34 @@ class WarpedImg(object):
 
         self.CheckRowIndex(rowLeftIndex, rowRightIndex)
         if len(rowLeftIndex) * len(rowRightIndex) > 1:
-            self.CombineNarrowRows(rowLeftIndex, rowRightIndex)
             self.GetRowRects(rowLeftIndex, rowRightIndex)
+            self.CombineNarrowRowRects()
         else:
             rowLeftIndex, rowRightIndex = [0], [H]
             self.GetRowRects(rowLeftIndex, rowRightIndex)
 
-    def CombineNarrowRows(self, rowLeftIndex, rowRightIndex):
-        if len(rowLeftIndex) > 1:
-            RowHeights = []
-            for i in range(len(rowLeftIndex)):
-                RowHeights.append(rowRightIndex[i] - rowLeftIndex[i])
-            if self.rowWidth is None:
-                self.rowWidth = np.percentile(RowHeights, 50)  # estimation of row width
-            for i in range(len(RowHeights) - 1, 0 - 1, -1):
-                if RowHeights[i] < self.rowWidth * 0.7:  # small row: combine it with the closest row
-                    if i == 0:
-                        rowLeftIndex.pop(1)
-                        rowRightIndex.pop(0)
-                        RowHeights.pop(0)
-                        RowHeights[0] = rowRightIndex[0] - rowLeftIndex[0]
-                    elif i == len(RowHeights) - 1:
-                        rowLeftIndex.pop(-1)
-                        rowRightIndex.pop(-2)
-                        RowHeights.pop(-1)
-                        RowHeights[-1] = rowRightIndex[-1] - rowLeftIndex[-1]
-                    elif rowLeftIndex[i] - rowRightIndex[i - 1] < rowLeftIndex[i + 1] - rowRightIndex[i]:  # combine with the row above
-                        rowLeftIndex.pop(i)
-                        rowRightIndex.pop(i - 1)
-                        RowHeights.pop(i)
-                        RowHeights[i - 1] = rowRightIndex[i - 1] - rowLeftIndex[i - 1]
-                    else:  # combine with the row below
-                        rowLeftIndex.pop(i + 1)
-                        rowRightIndex.pop(i)
-                        RowHeights.pop(i)
-                        RowHeights[i] = rowRightIndex[i] - rowLeftIndex[i]
+    def CombineNarrowRowRects(self):
+        if self.rowWidth is None:
+            self.rowWidth = np.percentile(self.rowHeights, 50)  # estimation of row width
+        for i in range(len(self.rowHeights) - 1, 0 - 1, -1):
+            if self.rowHeights[i] < self.rowWidth * 0.75 and len(self.rowHeights)>=2:  # small row: combine it with the closest row
+                if i==0:
+                    self.CombineRowRects(0 , 1)
+                elif i==len(self.rowHeights)-1:
+                    self.CombineRowRects(i - 1, i)
+                elif Rect.DistOfRects(self.rowRects[i],self.rowRects[i-1])< Rect.DistOfRects(self.rowRects[i],self.rowRects[i+1]):
+                    # combine with the row above
+                    self.CombineRowRects(i-1, i)
+                else:  # combine with the row below
+                    self.CombineRowRects(i, i+1)
+
+    def CombineRowRects(self,i,j):
+        if i!=j:
+            #combine rect i and j to i
+            self.rowRects[i] = Rect.CombineRects(self.rowRects[i], self.rowRects[j])
+            self.rowHeights[i] = GetRowHeight(self.rowRects[i])
+            self.rowRects.pop(j)
+            self.rowHeights.pop(j)
 
     def SegWideRows(self, img_b, thetas=list(range(-4, 5))):
         for i in range(len(self.rowRects) - 1, -1, -1):
@@ -86,13 +80,14 @@ class WarpedImg(object):
                     theta = thetas[min(dict, key=dict.get)]
                     wideRow = self.SegWideRow(img_b, rowRect, theta, 1)
                     self.rowRects = self.rowRects[0:i] + wideRow.rowRects + self.rowRects[i + 1:]
+                    self.rowHeights = self.rowHeights[0:i] + wideRow.rowHeights + self.rowHeights[i + 1:]
 
     def SegWideRow(self, img_b, rowRect, theta, f=0):
         rect = [list(rowRect[0]), list(rowRect[1]), rowRect[2]]
         if rect[2]<-45:
-            rect[1][0] += 40
+            rect[1][0] += 30
         else:
-            rect[1][1] += 40
+            rect[1][1] += 30
         rect[2] += theta
         warped_b, M = Rect.CropRect(img_b, rect)
         wideRow = WarpedImg(warped_b, M, self.colRect, self.rowWidth)
@@ -129,6 +124,7 @@ class WarpedImg(object):
             box = np.array([[0, rowLeftIndex[i]], [W - 1, rowLeftIndex[i]], [0, rowRightIndex[i]], [W - 1, rowRightIndex[i]]])
             rect = Rect.RectOnSrcImg(box, self.M)
             self.rowRects.append(rect)
+            self.rowHeights.append(GetRowHeight(rect))
 
     def SaveRowJson(self, colJsonName, outputdir='tmp'):
         if not os.path.isdir(outputdir):
@@ -149,7 +145,7 @@ def GetRowHeight(rect):
     else:
         return rect[1][1]
 
-def Binraization(img):
+def Binarization(img):
     img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     # local binarization
     img_b = cv2.adaptiveThreshold(img_gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 15, 10)
@@ -171,7 +167,7 @@ def main(coldir,imgdir,outputdir):
         with open(os.path.join(coldir,colRectJson)) as file:
             colRect = json.load(file)
 
-        img_b = Binraization(img)
+        img_b = Binarization(img)
         # detect verticle lines
         col_b, M = Rect.CropRect(img_b, colRect)
 
@@ -196,15 +192,13 @@ if __name__ == '__main__':
 
     clean_names = lambda x: [i for i in x if i[0] != '.']
     coldir = os.listdir(args.coldir)
-    coldir = coldir[0:100:5]
+    coldir = coldir[0:80:5]
     coldir = sorted(clean_names(coldir))
 
     outputdir = [os.path.join(args.outputdir, dir) for dir in coldir]
     coldir = [os.path.join(args.coldir, dir) for dir in coldir]
     imgdir = [args.imgdir] * len(coldir)
 
-    Parallel(n_jobs=2)(map(delayed(main), coldir, imgdir, outputdir))
-
-    #Parallel(n_jobs=multiprocessing.cpu_count())(map(delayed(main), coldirs,imgdir,outputdir))
-
+    Parallel(n_jobs=1)(map(delayed(main), coldir, imgdir, outputdir))
+    #Parallel(n_jobs=multiprocessing.cpu_count())(map(delayed(main), coldir, imgdir, outputdir))
 

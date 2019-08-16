@@ -136,7 +136,7 @@ class WarpedImg(object):
             rowJsonName=colJsonName.split('.')[0]+'_'+str(i).zfill(3)+'.json'
             with open(os.path.join(outputdir,rowJsonName), 'w') as outfile:
                 json.dump(rowRect, outfile)
-                if i%10==0:
+                if i%50==0:
                     print('output rowRect to ' + os.path.join(outputdir,rowJsonName))
             i+=1
 
@@ -146,10 +146,10 @@ def GetRowHeight(rect):
     else:
         return rect[1][1]
 
-def Binarization(img):
+def Binarization(img,patchSize=15,threshold=10):
     img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     # local binarization
-    img_b = cv2.adaptiveThreshold(img_gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 15, 10)
+    img_b = cv2.adaptiveThreshold(img_gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, patchSize, threshold)
     return img_b
 
 def GetImgFilename(jsonfile):
@@ -157,26 +157,67 @@ def GetImgFilename(jsonfile):
     f = f[0] + str(int(f[1:]))
     return book + '_' + f + '_' + n + '.tif'
 
+def RemoveMinistry(img,colRects,colJsonNames):
+    rect=Rect.CombineRects(colRects[0],colRects[1])
+    ROI=[list(rect[0]),list(rect[1]),rect[2]]
+    if ROI[1][0]>ROI[1][1]: #divide width by 4
+        ROI[1][1]/=4
+    else:
+        ROI[1][0]/=4
+    img_b=Binarization(img,patchSize=31,threshold=5)
+    warped_b , _ =Rect.CropRect(img_b, ROI)
+    warped_b=cv2.medianBlur(warped_b, 3)
+    warped_b=cv2.medianBlur(warped_b, 3)
+    kernel = np.ones([11, 3], np.uint8)
+    warped_b = cv2.morphologyEx(warped_b, cv2.MORPH_CLOSE, kernel)
+    #use CCL to detected largest region
+    ret, labels = cv2.connectedComponents(warped_b)
+    size , index = 0 , -1
+    for i in range(1, ret + 1):  # O(n^3), that's why we need downsampling
+        if labels[labels == i].shape[0] > warped_b.shape[0]*3 and labels[labels == i].shape[0]>size:  # remove small CCL regions
+            size , index = labels[labels == i].shape[0] , i
+    HRange, _ = np.where(labels == index)
+    if min(HRange) > 0.05 * warped_b.shape[0]:
+        print("remove Minsitry for "+colJsonNames[0]+" and "+colJsonNames[1])
+        for i in range(2):
+            H, theta=min(HRange), colRects[i][2]
+            colRect=[list(colRects[i][0]),list(colRects[i][1]),colRects[i][2]]
+            if colRect[1][0]>colRect[1][1]:
+                colRect[1][0]-=H
+            else:
+                colRect[1][1]-=H
+            if theta < -45:
+                theta+=90
+            colRect[0]=[colRect[0][0]-H*np.sin(np.deg2rad(theta))/2,colRect[0][1]+H*np.cos(np.deg2rad(theta))/2]
+            colRects[i]=colRect
+        return True
+    return False
+
 def main(coldir,imgdir,outputdir):
     clean_names = lambda x: [i for i in x if i[0] != '.']
     colRectJsons = sorted(clean_names(os.listdir(coldir)))
 
     imgpath = os.path.join(imgdir,GetImgFilename(colRectJsons[0]))
     img = cv2.imread(imgpath)
+    img_b = Binarization(img)
 
+    colRects,colJsonNames = [],[]
     for colRectJson in colRectJsons:
         with open(os.path.join(coldir,colRectJson)) as file:
-            colRect = json.load(file)
+            colRects.append(json.load(file))
+            colJsonNames.append(colRectJson)
 
-        img_b = Binarization(img)
+    RemoveMinistry(img,colRects,colJsonNames)
+
+    for i in range(len(colRects)):
         # detect verticle lines
-        col_b, M = Rect.CropRect(img_b, colRect)
+        col_b, M = Rect.CropRect(img_b, colRects[i])
 
-        col = WarpedImg(col_b, M, colRect)
+        col = WarpedImg(col_b, M, colRects[i])
         col.Seg2Rows()
         col.SegWideRows(img_b)
         col.SegWideRows(cv2.medianBlur(img_b, 5))
-        col.SaveRowJson(colRectJson,outputdir)
+        col.SaveRowJson(colJsonNames[i],outputdir)
 
 if __name__ == '__main__':
     # construct the argument parse and parse the arguments
@@ -200,6 +241,6 @@ if __name__ == '__main__':
     coldir = [os.path.join(args.coldir, dir) for dir in coldir]
     imgdir = [args.imgdir] * len(coldir)
 
-    #Parallel(n_jobs=1)(map(delayed(main), coldir, imgdir, outputdir))
-    Parallel(n_jobs=multiprocessing.cpu_count())(map(delayed(main), coldir, imgdir, outputdir))
+    Parallel(n_jobs=1)(map(delayed(main), coldir, imgdir, outputdir))
+    #Parallel(n_jobs=multiprocessing.cpu_count())(map(delayed(main), coldir, imgdir, outputdir))
 

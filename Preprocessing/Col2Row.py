@@ -49,7 +49,7 @@ class WarpedImg(object):
         for i in range(len(self.rowHeights) - 1, 0 - 1, -1):
             if self.rowHeights[i] < self.rowWidth * 0.75 and len(self.rowHeights)>=2:  # small row: combine it with the closest row
                 if i==0:
-                    if Rect.DistOfRects(self.rowRects[0],self.rowRects[1])<self.rowWidth*3:
+                    if Rect.DistOfRects(self.rowRects[0], self.rowRects[1]) < self.rowWidth * 3:
                         self.CombineRowRects(0 , 1)
                     else:
                         self.rowRects.pop(i)
@@ -218,7 +218,8 @@ def main(coldir,imgdir,outputdir):
             colRects.append(json.load(file))
             colJsonNames.append(colRectJson)
 
-    RemoveMinistry(img,colRects,colJsonNames)
+    if len(colRects)==5:
+        RemoveMinistry(img,colRects,colJsonNames)
 
     for i in range(len(colRects)):
         # detect verticle lines
@@ -245,13 +246,13 @@ if __name__ == '__main__':
 
     clean_names = lambda x: [i for i in x if i[0] != '.']
     coldir = os.listdir(args.coldir)
-    coldir = coldir[1::50]
+    #coldir = coldir[1::50]
     coldir = sorted(clean_names(coldir))
 
     outputdir = [os.path.join(args.outputdir, dir) for dir in coldir]
     coldir = [os.path.join(args.coldir, dir) for dir in coldir]
     imgdir = [args.imgdir] * len(coldir)
 
-    Parallel(n_jobs=1)(map(delayed(main), coldir, imgdir, outputdir))
-    #Parallel(n_jobs=multiprocessing.cpu_count())(map(delayed(main), coldir, imgdir, outputdir))
+    #Parallel(n_jobs=1)(map(delayed(main), coldir, imgdir, outputdir))
+    Parallel(n_jobs=multiprocessing.cpu_count())(map(delayed(main), coldir, imgdir, outputdir))
 

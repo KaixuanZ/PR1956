@@ -64,8 +64,9 @@ class WarpedImg(object):
             self.rowHeights.pop(j)
 
     def SegWideRows(self, img_b, thetas=list(range(-4, 5))):
+        adpRowHeights=signal.medfilt(self.rowHeights, 7)
         for i in range(len(self.rowRects) - 1, -1, -1):
-            if GetRowHeight(self.rowRects[i]) >= 2 * self.rowWidth:
+            if GetRowHeight(self.rowRects[i]) >= 2 * min(adpRowHeights[i],1.6*self.rowWidth):
                 rowRect = self.rowRects[i]
                 rowNum = []
                 for theta in thetas:
@@ -192,13 +193,13 @@ if __name__ == '__main__':
 
     clean_names = lambda x: [i for i in x if i[0] != '.']
     coldir = os.listdir(args.coldir)
-    coldir = coldir[0:80:5]
+    coldir = coldir[1::50]
     coldir = sorted(clean_names(coldir))
 
     outputdir = [os.path.join(args.outputdir, dir) for dir in coldir]
     coldir = [os.path.join(args.coldir, dir) for dir in coldir]
     imgdir = [args.imgdir] * len(coldir)
 
-    Parallel(n_jobs=1)(map(delayed(main), coldir, imgdir, outputdir))
-    #Parallel(n_jobs=multiprocessing.cpu_count())(map(delayed(main), coldir, imgdir, outputdir))
+    #Parallel(n_jobs=1)(map(delayed(main), coldir, imgdir, outputdir))
+    Parallel(n_jobs=multiprocessing.cpu_count())(map(delayed(main), coldir, imgdir, outputdir))
 

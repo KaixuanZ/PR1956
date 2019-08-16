@@ -42,13 +42,24 @@ class WarpedImg(object):
 
     def CombineNarrowRowRects(self):
         if self.rowWidth is None:
-            self.rowWidth = np.percentile(self.rowHeights, 50)  # estimation of row width
+            if len(self.rowHeights)>5:
+                self.rowWidth = np.percentile(self.rowHeights, 50)  # estimation of row width
+            else:
+                self.rowWidth = 50
         for i in range(len(self.rowHeights) - 1, 0 - 1, -1):
             if self.rowHeights[i] < self.rowWidth * 0.75 and len(self.rowHeights)>=2:  # small row: combine it with the closest row
                 if i==0:
-                    self.CombineRowRects(0 , 1)
+                    if Rect.DistOfRects(self.rowRects[0],self.rowRects[1])<self.rowWidth*3:
+                        self.CombineRowRects(0 , 1)
+                    else:
+                        self.rowRects.pop(i)
+                        self.rowHeights.pop(i)
                 elif i==len(self.rowHeights)-1:
-                    self.CombineRowRects(i - 1, i)
+                    if Rect.DistOfRects(self.rowRects[i], self.rowRects[i-1]) < self.rowWidth * 3:
+                        self.CombineRowRects(i - 1, i)
+                    else:
+                        self.rowRects.pop(i)
+                        self.rowHeights.pop(i)
                 elif Rect.DistOfRects(self.rowRects[i],self.rowRects[i-1])< Rect.DistOfRects(self.rowRects[i],self.rowRects[i+1]):
                     # combine with the row above
                     self.CombineRowRects(i-1, i)

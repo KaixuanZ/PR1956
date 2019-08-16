@@ -1,6 +1,17 @@
 import numpy as np
 import cv2
 
+def CombineRects(rect1,rect2):
+    box1=cv2.boxPoints(tuple(rect1))
+    box2=cv2.boxPoints(tuple(rect2))
+    box=np.concatenate((box1,box2),axis=0)
+    return cv2.minAreaRect(box)
+
+def DistOfRects(rect1,rect2):
+    c1,c2=np.array(rect1[0]),np.array(rect2[0])
+    return np.sum((c1-c2)**2)**0.5
+
+
 def RectOnSrcImg(pts, M):
     # pts=[[x1,y1],[x2,y2]] can be list or array
     pts=PtsOnSrcImg(pts, M)

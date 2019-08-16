@@ -70,7 +70,7 @@ def main(jsonfile,jsondir,imgdir,outputdir):
             rect = json.load(file)
         box = cv2.boxPoints(tuple(rect))
         box = np.int0(box/scale)
-        cv2.drawContours(img, [box], 0, (0,0,255), 5)
+        cv2.drawContours(img, [box], 0, (0,0,255), 1)
     #import pdb;pdb.set_trace()
     cv2.imwrite(os.path.join(outputdir,jsonfile.split('.')[0]+'.png'),img)
 
@@ -88,11 +88,11 @@ if __name__ == '__main__':
         print('creating directory ' + args.outputdir)
 
     clean_names = lambda x: [i for i in x if i[0] != '.']
-    jsonfile = os.listdir(args.jsondir)
-    jsonfile = sorted(clean_names(jsonfile))
-    jsondir=[args.jsondir] * len(jsonfile)
-    imgdir=[args.imgdir] * len(jsonfile)
-    outputdir=[args.outputdir] * len(jsonfile)
+    rowRects = os.listdir(args.jsondir)
+    rowRects = sorted(clean_names(rowRects))
+    jsondir=[args.jsondir] * len(rowRects)
+    imgdir=[args.imgdir] * len(rowRects)
+    outputdir=[args.outputdir] * len(rowRects)
 
-    Parallel(n_jobs=multiprocessing.cpu_count())(map(delayed(main), jsonfile,jsondir,imgdir,outputdir))
+    Parallel(n_jobs=multiprocessing.cpu_count())(map(delayed(main), rowRects,jsondir,imgdir,outputdir))
     #multiprocessing.cpu_count()-1

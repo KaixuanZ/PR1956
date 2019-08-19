@@ -70,9 +70,9 @@ class WarpedImg(object):
             self.rowHeights.pop(j)
 
     def SegWideRows(self, img_b, thetas=list(range(-4, 5))):
-        adpRowHeights=max(signal.medfilt(self.rowHeights, 7),0.6*self.rowWidth)
+        adpRowHeights=signal.medfilt(self.rowHeights, 7)
         for i in range(len(self.rowRects) - 1, -1, -1):
-            if GetRowHeight(self.rowRects[i]) >= 2 * min(adpRowHeights[i],1.6*self.rowWidth):
+            if GetRowHeight(self.rowRects[i]) >= 2 * min(max(adpRowHeights[i], 0.6*self.rowWidth),1.6*self.rowWidth):
                 rowRect = self.rowRects[i]
                 rowNum = []
                 for theta in thetas:

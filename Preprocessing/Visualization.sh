@@ -2,12 +2,17 @@
 
 ImgDir=${ImgDir:-'../../personnel-records/1956/scans/parsed'}
 
-JsonDir=${JsonDir:-'../../personnel-records/1956/sge/row_rect'}
+JsonDir=${JsonDir:-'../../personnel-records/1956/seg/row_rect'}
 
 OutputDir=${OutputDir:-'../../personnel-records/1956/visualization'}
 
-echo "removing $OutputDir"
+read -p "Do you want to remove previous output in $OutputDir? (y/n) " -n 1 -r
+echo -e "\n"
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+    echo "removing $OutputDir"
 
-rm -rf $OutputDir
+    rm $OutputPath --recursive
+fi
 
 python3 Visualization.py --imgdir=$ImgDir --jsondir=$JsonDir --outputdir=$OutputDir

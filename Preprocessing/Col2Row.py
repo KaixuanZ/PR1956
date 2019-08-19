@@ -41,11 +41,6 @@ class WarpedImg(object):
             self.GetRowRects(rowLeftIndex, rowRightIndex)
 
     def CombineNarrowRowRects(self):
-        if self.rowWidth is None:
-            if len(self.rowHeights)>5:
-                self.rowWidth = np.percentile(self.rowHeights, 50)  # estimation of row width
-            else:
-                self.rowWidth = 50
         for i in range(len(self.rowHeights) - 1, 0 - 1, -1):
             if self.rowHeights[i] < self.rowWidth * 0.75 and len(self.rowHeights)>=2:  # small row: combine it with the closest row
                 if i==0:
@@ -75,7 +70,7 @@ class WarpedImg(object):
             self.rowHeights.pop(j)
 
     def SegWideRows(self, img_b, thetas=list(range(-4, 5))):
-        adpRowHeights=signal.medfilt(self.rowHeights, 7)
+        adpRowHeights=max(signal.medfilt(self.rowHeights, 7),0.6*self.rowWidth)
         for i in range(len(self.rowRects) - 1, -1, -1):
             if GetRowHeight(self.rowRects[i]) >= 2 * min(adpRowHeights[i],1.6*self.rowWidth):
                 rowRect = self.rowRects[i]
@@ -93,6 +88,7 @@ class WarpedImg(object):
                     wideRow = self.SegWideRow(img_b, rowRect, theta, 1)
                     self.rowRects = self.rowRects[0:i] + wideRow.rowRects + self.rowRects[i + 1:]
                     self.rowHeights = self.rowHeights[0:i] + wideRow.rowHeights + self.rowHeights[i + 1:]
+
 
     def SegWideRow(self, img_b, rowRect, theta, f=0):
         rect = [list(rowRect[0]), list(rowRect[1]), rowRect[2]]
@@ -137,6 +133,11 @@ class WarpedImg(object):
             rect = Rect.RectOnSrcImg(box, self.M)
             self.rowRects.append(rect)
             self.rowHeights.append(GetRowHeight(rect))
+        if self.rowWidth is None:
+            if len(self.rowHeights)>5:
+                self.rowWidth = np.percentile(self.rowHeights, 50)  # estimation of row width
+            else:
+                self.rowWidth = 50
 
     def SaveRowJson(self, colJsonName, outputdir='tmp'):
         if not os.path.isdir(outputdir):
@@ -175,18 +176,19 @@ def RemoveMinistry(img,colRects,colJsonNames):
         ROI[1][1]/=4
     else:
         ROI[1][0]/=4
-    img_b=Binarization(img,patchSize=31,threshold=5)
+    img_b=Binarization(img,patchSize=31,threshold=10)
     warped_b , _ =Rect.CropRect(img_b, ROI)
     warped_b=cv2.medianBlur(warped_b, 3)
     warped_b=cv2.medianBlur(warped_b, 3)
-    kernel = np.ones([11, 3], np.uint8)
+    kernel = np.ones([21, 3], np.uint8)
     warped_b = cv2.morphologyEx(warped_b, cv2.MORPH_CLOSE, kernel)
     #use CCL to detected largest region
     ret, labels = cv2.connectedComponents(warped_b)
     size , index = 0 , -1
-    for i in range(1, ret + 1):  # O(n^3), that's why we need downsampling
-        if labels[labels == i].shape[0] > warped_b.shape[0]*3 and labels[labels == i].shape[0]>size:  # remove small CCL regions
-            size , index = labels[labels == i].shape[0] , i
+    Height = lambda x: max(x) - min(x)
+    for i in range(1, ret + 1):  # O(n^3)
+        if labels[labels == i].shape[0] > warped_b.shape[0]*3 and Height(np.where(labels == i)[0])>size:  # remove small CCL regions
+            size , index = Height(np.where(labels == i)[0]) , i
     HRange, _ = np.where(labels == index)
     if min(HRange) > 0.05 * warped_b.shape[0]:
         print("remove Minsitry for "+colJsonNames[0]+" and "+colJsonNames[1])
@@ -246,7 +248,7 @@ if __name__ == '__main__':
 
     clean_names = lambda x: [i for i in x if i[0] != '.']
     coldir = os.listdir(args.coldir)
-    #coldir = coldir[1::50]
+    #coldir = coldir[130::]
     coldir = sorted(clean_names(coldir))
 
     outputdir = [os.path.join(args.outputdir, dir) for dir in coldir]

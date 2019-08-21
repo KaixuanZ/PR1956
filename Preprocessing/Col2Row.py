@@ -24,7 +24,7 @@ class WarpedImg(object):
         H, W = self.warpedImg_b.shape
         rowLeftIndex, rowRightIndex = [], []
         fgPerRow = np.sum(self.warpedImg_b[:, int(0.1 * W):-int(0.1 * W)], axis=1) / 255
-        fgPerRow = signal.medfilt(fgPerRow, 15)
+        fgPerRow = signal.medfilt(fgPerRow, 7)
 
         for i in range(fgPerRow.shape[0] - 1):
             if fgPerRow[i] > threshold and fgPerRow[i + 1] <= threshold:
@@ -163,7 +163,7 @@ def GetRowHeight(rect):
     else:
         return rect[1][1]
 
-def Binarization(img,patchSize=15,threshold=10):
+def Binarization(img,patchSize=15,threshold=12):
     img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     # local binarization
     img_b = cv2.adaptiveThreshold(img_gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, patchSize, threshold)

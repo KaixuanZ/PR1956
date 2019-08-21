@@ -11,11 +11,11 @@ import Rect
 # read image and detected bounding box, output the image with bounding box
 
 class WarpedImg(object):
-    def __init__(self, warpedImg_b, M, colRect, rowWidth=None):
+    def __init__(self, warpedImg_b, M, colRect, rowHeight=None):
         self.M = M  # transformation from the original img to this wapred img
         self.warpedImg_b = warpedImg_b  # used for initial row segmention
         self.rowRects = []  # rect of each row images in original img
-        self.rowWidth = rowWidth
+        self.rowHeight = rowHeight
         self.colRect = colRect
         self.rowHeights = []
 
@@ -35,22 +35,25 @@ class WarpedImg(object):
         self.CheckRowIndex(rowLeftIndex, rowRightIndex)
         if len(rowLeftIndex) * len(rowRightIndex) > 1:
             self.GetRowRects(rowLeftIndex, rowRightIndex)
-            self.CombineNarrowRowRects()
+            self.SetRowHeight()
+            self.CombineSmallRowRects()
+            self.SetRowHeight()
         else:
             rowLeftIndex, rowRightIndex = [0], [H]
             self.GetRowRects(rowLeftIndex, rowRightIndex)
+            self.SetRowHeight()
 
-    def CombineNarrowRowRects(self):
+    def CombineSmallRowRects(self):
         for i in range(len(self.rowHeights) - 1, 0 - 1, -1):
-            if self.rowHeights[i] < self.rowWidth * 0.75 and len(self.rowHeights)>=2:  # small row: combine it with the closest row
+            if self.rowHeights[i] < self.rowHeight * 0.8 and len(self.rowHeights)>=2:  # small row: combine it with the closest row
                 if i==0:
-                    if Rect.DistOfRects(self.rowRects[0], self.rowRects[1]) < self.rowWidth * 3:
+                    if Rect.DistOfRects(self.rowRects[0], self.rowRects[1]) < self.rowHeight * 3:
                         self.CombineRowRects(0 , 1)
                     else:
                         self.rowRects.pop(i)
                         self.rowHeights.pop(i)
                 elif i==len(self.rowHeights)-1:
-                    if Rect.DistOfRects(self.rowRects[i], self.rowRects[i-1]) < self.rowWidth * 3:
+                    if Rect.DistOfRects(self.rowRects[i], self.rowRects[i-1]) < self.rowHeight * 3:
                         self.CombineRowRects(i - 1, i)
                     else:
                         self.rowRects.pop(i)
@@ -69,15 +72,15 @@ class WarpedImg(object):
             self.rowRects.pop(j)
             self.rowHeights.pop(j)
 
-    def SegWideRows(self, img_b, thetas=list(range(-4, 5))):
+    def SegLargeRows(self, img_b, thetas=list(range(-4, 5))):
         adpRowHeights=signal.medfilt(self.rowHeights, 7)
         for i in range(len(self.rowRects) - 1, -1, -1):
-            if GetRowHeight(self.rowRects[i]) >= 2 * min(max(adpRowHeights[i], 0.6*self.rowWidth),1.6*self.rowWidth):
+            if GetRowHeight(self.rowRects[i]) >= 2 * min(max(adpRowHeights[i], 0.6*self.rowHeight),1.6*self.rowHeight):
                 rowRect = self.rowRects[i]
                 rowNum = []
                 for theta in thetas:
-                    wideRow = self.SegWideRow(img_b, rowRect, theta)
-                    rowNum.append(len(wideRow.rowRects))
+                    largeRow = self.SegLargeRow(img_b, rowRect, theta)
+                    rowNum.append(len(largeRow.rowRects))
                 if max(rowNum) > 1:
                     #find the index that's closest to theta=0
                     index = [i for i, x in enumerate(rowNum) if x == max(rowNum)]
@@ -85,12 +88,12 @@ class WarpedImg(object):
                     for ii in index:
                         dict[ii] = abs(ii - (len(thetas) - 1) / 2)
                     theta = thetas[min(dict, key=dict.get)]
-                    wideRow = self.SegWideRow(img_b, rowRect, theta, 1)
-                    self.rowRects = self.rowRects[0:i] + wideRow.rowRects + self.rowRects[i + 1:]
-                    self.rowHeights = self.rowHeights[0:i] + wideRow.rowHeights + self.rowHeights[i + 1:]
+                    largeRow = self.SegLargeRow(img_b, rowRect, theta, 1)
+                    self.rowRects = self.rowRects[0:i] + largeRow.rowRects + self.rowRects[i + 1:]
+                    self.rowHeights = self.rowHeights[0:i] + largeRow.rowHeights + self.rowHeights[i + 1:]
 
 
-    def SegWideRow(self, img_b, rowRect, theta, f=0):
+    def SegLargeRow(self, img_b, rowRect, theta, f=0):
         rect = [list(rowRect[0]), list(rowRect[1]), rowRect[2]]
         if rect[2]<-45:
             rect[1][0] += 30
@@ -98,21 +101,21 @@ class WarpedImg(object):
             rect[1][1] += 30
         rect[2] += theta
         warped_b, M = Rect.CropRect(img_b, rect)
-        wideRow = WarpedImg(warped_b, M, self.colRect, self.rowWidth)
-        wideRow.Seg2Rows()
+        largeRow = WarpedImg(warped_b, M, self.colRect, self.rowHeight)
+        largeRow.Seg2Rows()
         # move the center of rows so that they locate within the col
         if f:
             rot = (rowRect[2] - self.colRect[2]) % 90  # relative rotation of row to col (rowRect[2]=colRect[2]+rot)
             if rot > 45:
                 rot -= 90
             rot += theta  # relative rotation of rect to col
-            for i in range(len(wideRow.rowRects)):
-                rect = wideRow.rowRects[i]
+            for i in range(len(largeRow.rowRects)):
+                rect = largeRow.rowRects[i]
                 vec = np.array([rect[0][0] - rowRect[0][0], rect[0][1] - rowRect[0][1]])
                 vec = vec * np.tan(np.deg2rad(rot))
                 vec = [vec[1], -vec[0]]
-                wideRow.rowRects[i] = [[rect[0][0] + vec[0], rect[0][1] + vec[1]], rect[1], rect[2]]
-        return wideRow
+                largeRow.rowRects[i] = [[rect[0][0] + vec[0], rect[0][1] + vec[1]], rect[1], rect[2]]
+        return largeRow
 
     def CheckRowIndex(self, rowLeftIndex, rowRightIndex):
         # check if leftIndex and rightIndex have the same number, and if leftIndex<rightIndex
@@ -133,11 +136,13 @@ class WarpedImg(object):
             rect = Rect.RectOnSrcImg(box, self.M)
             self.rowRects.append(rect)
             self.rowHeights.append(GetRowHeight(rect))
-        if self.rowWidth is None:
+
+    def SetRowHeight(self):
+        if self.rowHeight is None:
             if len(self.rowHeights)>5:
-                self.rowWidth = np.percentile(self.rowHeights, 50)  # estimation of row width
+                self.rowHeight = np.percentile(self.rowHeights, 50)  # adaptive estimation of row width
             else:
-                self.rowWidth = 50
+                self.rowHeight = 50
 
     def SaveRowJson(self, colJsonName, outputdir='tmp'):
         if not os.path.isdir(outputdir):
@@ -190,7 +195,7 @@ def RemoveMinistry(img,colRects,colJsonNames):
         if labels[labels == i].shape[0] > warped_b.shape[0]*3 and Height(np.where(labels == i)[0])>size:  # remove small CCL regions
             size , index = Height(np.where(labels == i)[0]) , i
     HRange, _ = np.where(labels == index)
-    if min(HRange) > 0.05 * warped_b.shape[0]:
+    if min(HRange) > 0.05 * warped_b.shape[0] and min(HRange) < 0.3 * warped_b.shape[0]:
         print("remove Minsitry for "+colJsonNames[0]+" and "+colJsonNames[1])
         for i in range(2):
             H, theta=min(HRange), colRects[i][2]
@@ -229,8 +234,8 @@ def main(coldir,imgdir,outputdir):
 
         col = WarpedImg(col_b, M, colRects[i])
         col.Seg2Rows()
-        col.SegWideRows(img_b)
-        col.SegWideRows(cv2.medianBlur(img_b, 5))
+        col.SegLargeRows(img_b)
+        col.SegLargeRows(cv2.medianBlur(img_b, 5))
         col.SaveRowJson(colJsonNames[i],outputdir)
 
 if __name__ == '__main__':

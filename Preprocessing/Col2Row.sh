@@ -15,4 +15,4 @@ then
     rm $OutputPath --recursive
 fi
 
-python3 Col2Row.py --imgdir=$ImgPath --coldir=$ColPath --outputdir=$OutputPath 2>&1 | tee log_Row.txt
+python3 Col2Row.py --imgdir=$ImgPath --coldir=$ColPath --outputdir=$OutputPath #2>&1 | tee log_Row.txt

@@ -12,7 +12,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]
 then
     echo "removing $OutputDir"
 
-    rm $OutputPath --recursive
+    rm -rf $OutputDir
 fi
 
 python3 Visualization.py --imgdir=$ImgDir --jsondir=$JsonDir --outputdir=$OutputDir

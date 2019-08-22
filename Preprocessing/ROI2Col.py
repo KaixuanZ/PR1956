@@ -35,7 +35,7 @@ def ColIndex(img_b,ColWHRatio=2/15):
 
 def main(ROIfilename,imgdir,ROIdir,outputdir):
     threshold1=10  #threshold for binarization
-    threshold2=200 #threshold for deciding if the last col has content
+    threshold2=190 #threshold for deciding if the last col has content
     print("processing "+ROIfilename)
     outputdir=os.path.join(outputdir,ROIfilename.split('.')[0])
     if not os.path.isdir(outputdir):
@@ -87,9 +87,11 @@ if __name__ == '__main__':
     clean_names = lambda x: [i for i in x if i[0] != '.']
     ROIfilenames = os.listdir(args.ROIdir)
     ROIfilenames = sorted(clean_names(ROIfilenames))
+
     #pagefilenames = pagefilenames[50:]  #start processing at last checkpoint
     imgdir = [args.imgdir] * len(ROIfilenames)
     ROIdir = [args.ROIdir] * len(ROIfilenames)
     outputdir = [args.outputdir] * len(ROIfilenames)
 
+    #Parallel(n_jobs=1)(map(delayed(main), ROIfilenames, imgdir, ROIdir, outputdir))
     Parallel(n_jobs=multiprocessing.cpu_count())(map(delayed(main), ROIfilenames,imgdir,ROIdir,outputdir))

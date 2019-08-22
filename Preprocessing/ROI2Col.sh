@@ -15,4 +15,4 @@ then
     rm $OutputPath --recursive
 fi
 
-python3 ROI2Col.py --imgdir=$ImgPath --ROIdir=$ROIPath --outputdir=$OutputPath 2>&1 | tee log_ROI.txt
+python3 ROI2Col.py --imgdir=$ImgPath --ROIdir=$ROIPath --outputdir=$OutputPath #2>&1 | tee log_ROI.txt

@@ -4,3 +4,5 @@
 #feh ../output/tmp1.png --scale-down --auto-zoom
 #feh Preprocessing/pr1956_f0144_4_1.png --scale-down --auto-zoom
 feh ../Visualization/pr1956_f0100_2_0.png --scale-down --auto-zoom
+
+feh pr1956_f0108_4_0.png --scale-down --auto-zoom

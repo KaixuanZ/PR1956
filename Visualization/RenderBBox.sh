@@ -15,4 +15,4 @@ then
     rm -rf $OutputDir
 fi
 
-python3 Visualization.py --imgdir=$ImgDir --jsondir=$JsonDir --outputdir=$OutputDir
+python3 RenderBBox.py --imgdir=$ImgDir --jsondir=$JsonDir --outputdir=$OutputDir

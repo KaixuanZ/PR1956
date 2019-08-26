@@ -14,20 +14,20 @@ def GetImgFilename(jsonfile):
     f = f[0] + str(int(f[1:]))
     return book + '_' + f + '_' + n + '.tif'
 
-def main(coldir, imgdir, outputdir):
+def main(imgdir, rectdir, outputdir):
     if not os.path.isdir(outputdir):
         os.mkdir(outputdir)
         print('creating directory ' + outputdir)
 
     clean_names = lambda x: [i for i in x if i[0] != '.']
-    colRectJsons = sorted(clean_names(os.listdir(coldir)))
+    colRectJsons = sorted(clean_names(os.listdir(rectdir)))
 
     imgpath = os.path.join(imgdir, GetImgFilename(colRectJsons[0]))
     img=cv2.imread(imgpath)
 
     colRects, colJsonNames = [], []
     for colRectJson in colRectJsons:
-        with open(os.path.join(coldir, colRectJson)) as file:
+        with open(os.path.join(rectdir, colRectJson)) as file:
             colRects.append(json.load(file))
             colJsonNames.append(colRectJson)
 
@@ -39,7 +39,7 @@ if __name__ == '__main__':
     # construct the argument parse and parse the arguments
     parser = argparse.ArgumentParser(description='Page Detection')
     parser.add_argument('--imgdir', type=str)
-    parser.add_argument('--coldir', type=str)
+    parser.add_argument('--rectdir', type=str)
     parser.add_argument('--outputdir', type=str)
     args = parser.parse_args()
 
@@ -49,14 +49,14 @@ if __name__ == '__main__':
         print('creating directory ' + args.outputdir)
 
     clean_names = lambda x: [i for i in x if i[0] != '.']
-    coldir = os.listdir(args.coldir)
+    rectdir = os.listdir(args.rectdir)
     #coldir = coldir[130::]
-    coldir = sorted(clean_names(coldir))
+    rectdir = sorted(clean_names(rectdir))
 
-    outputdir = [os.path.join(args.outputdir, dir) for dir in coldir]
-    coldir = [os.path.join(args.coldir, dir) for dir in coldir]
-    imgdir = [args.imgdir] * len(coldir)
+    outputdir = [os.path.join(args.outputdir, dir) for dir in rectdir]
+    coldir = [os.path.join(args.coldir, dir) for dir in rectdir]
+    imgdir = [args.imgdir] * len(rectdir)
 
-    Parallel(n_jobs=1)(map(delayed(main), coldir, imgdir, outputdir))
+    Parallel(n_jobs=1)(map(delayed(main), imgdir, rectdir, outputdir))
     #Parallel(n_jobs=multiprocessing.cpu_count())(map(delayed(main), coldir, imgdir, outputdir))
 

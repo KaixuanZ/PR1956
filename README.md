@@ -1,3 +1,5 @@
 # HarvardAHA
 
-Working on /Preprocessing to detect col.
+/Preprocessing finished.
+
+working on /OCR

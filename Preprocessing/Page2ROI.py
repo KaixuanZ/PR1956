@@ -4,6 +4,8 @@ import numpy as np
 import os
 from joblib import Parallel, delayed
 import argparse
+import sys
+sys.path.append('../')
 import Rect
 import multiprocessing
 

@@ -6,6 +6,8 @@ from google.protobuf.json_format import MessageToJson
 from joblib import Parallel, delayed
 import argparse
 import multiprocessing
+import sys
+sys.path.append('../')
 import Rect
 import cv2
 

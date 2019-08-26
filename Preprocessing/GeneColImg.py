@@ -4,8 +4,10 @@ import json
 from joblib import Parallel, delayed
 import argparse
 import multiprocessing
-import Rect
 import cv2
+import sys
+sys.path.append('../')
+import Rect
 
 def GetImgFilename(jsonfile):
     book, f, n , p ,c = jsonfile.split('.')[0].split('_')

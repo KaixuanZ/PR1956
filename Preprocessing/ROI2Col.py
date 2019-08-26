@@ -5,6 +5,8 @@ import os
 from joblib import Parallel, delayed
 import argparse
 import multiprocessing
+import sys
+sys.path.append('../')
 import Rect
 
 # read image and detected bounding box, output the image with bounding box

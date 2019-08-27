@@ -32,8 +32,8 @@ def main(imgdir, rectdir, outputdir):
             JsonNames.append(colRectJson)
 
     for i in range(len(Rects)):
-        img, _ = Rect.CropRect(img, Rects[i])
-        cv2.imwrite(os.path.join(outputdir,JsonNames[i].split('.')[0]+'.png'),img)
+        warped, _ = Rect.CropRect(img, Rects[i])
+        cv2.imwrite(os.path.join(outputdir,JsonNames[i].split('.')[0]+'.png'),warped)
 
 if __name__ == '__main__':
     # construct the argument parse and parse the arguments
@@ -56,5 +56,5 @@ if __name__ == '__main__':
     rectdir = [os.path.join(args.rectdir, dir) for dir in rectdir]
     imgdir = [args.imgdir] * len(rectdir)
 
-    #Parallel(n_jobs=1)(map(delayed(main), imgdir, rectdir, outputdir))
-    Parallel(n_jobs=multiprocessing.cpu_count())(map(delayed(main), imgdir, rectdir, outputdir))
+    Parallel(n_jobs=1)(map(delayed(main), imgdir, rectdir, outputdir))
+    #Parallel(n_jobs=multiprocessing.cpu_count())(map(delayed(main), imgdir, rectdir, outputdir))

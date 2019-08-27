@@ -11,6 +11,11 @@ sys.path.append('../')
 import Rect
 
 # read image and detected bounding box, output the image with bounding box
+def GetColHeight(rect):
+    if rect[1][0]>rect[1][1]:
+        return rect[1][0]
+    else:
+        return rect[1][1]
 
 def Binarization(img,patchSize=15,threshold=12):
     img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -60,6 +65,7 @@ def RemoveMinistry(img,colRects,colJsonNames):
     return False
 
 def main(coldir,imgdir):
+    print("processing "+coldir)
     clean_names = lambda x: [i for i in x if i[0] != '.']
     colRectJsons = sorted(clean_names(os.listdir(coldir)))
 
@@ -72,7 +78,7 @@ def main(coldir,imgdir):
             colRects.append(json.load(file))
             colJsonNames.append(colRectJson)
 
-    if len(colRects)==5:
+    if len(colRects)==5 and abs(GetColHeight(colRects[1])-GetColHeight(colRects[2]))<1:   #haven't remove Ministry
         if RemoveMinistry(img,colRects,colJsonNames):
             print("remove Minsitry for "+colJsonNames[0]+" and "+colJsonNames[1])
             with open(os.path.join(coldir, colJsonNames[0]),'w') as file:

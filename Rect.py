@@ -1,5 +1,12 @@
 import numpy as np
 import cv2
+from shapely.geometry import Polygon
+
+def AreaOfOverlap(rect1,rect2,rect=True):
+    if rect:
+        rect1 = Polygon(cv2.boxPoints(tuple(rect1)))
+        rect2 = Polygon(cv2.boxPoints(tuple(rect2)))
+    return rect1.intersection(rect2).area
 
 def CombineRects(rect1,rect2):
     box1=cv2.boxPoints(tuple(rect1))

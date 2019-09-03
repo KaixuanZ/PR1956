@@ -19,17 +19,17 @@ def LoadModel(height,width,weightfile):
         x = base_model.get_layer("conv_pw_13_relu").output
         x = GlobalAveragePooling2D(data_format=None)(x)
         x = Dropout(0.5)(x)
-        predictions = Dense(7, activation='softmax')(x)
+        predictions = Dense(6, activation='softmax')(x)
 
     model = Model(inputs=base_model.input, outputs=predictions)
     model.load_weights(weightfile)
     return model
 
 def ZeroPadding(filename):
-    #for pr1954
+    #for pr1956
     fname,fformat=filename.split('.')
-    fname0,fname1,fname2,fname3,fname4=fname.split('_')
-    filename=fname0+'_'+fname1+'_'+fname2+'_'+fname3+'_'+fname4.zfill(3)+'.'+fformat
+    fname0,fname1,fname2,fname3,fname4,fname5=fname.split('_')
+    filename=fname0+'_'+fname1+'_'+fname2+'_'+fname3+'_'+fname4+'_'+fname5.zfill(3)+'.'+fformat
     return filename
 
 def main(inputpath,outputpath,weightfile):

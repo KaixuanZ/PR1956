@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
 
-GPUNum=${3:-0}
+GPUNum=${GPUNum:-0}
 
-InputPath=../../personnel-records/1954/seg/row2/
+InputPath=${InputPath:-'../../personnel-records/1956/seg/row_img'}
 
-OutputPath=${OutputPath:-'../../personnel-records/1954/prob'}
+OutputPath=${OutputPath:-'../../personnel-records/1956/prob'}
 
-rm $OutputPath --recursive
+read -p "Do you want to remove previous output in $OutputPath? (y/n) " -n 1 -r
+echo -e "\n"
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+    echo "removing $OutputPath"
+
+    rm $OutputPath --recursive
+fi
 
 mkdir $OutputPath
 
-#InputPath=../../personnel-records/1954/seg/row3/
-#OutputPath=${OutputPath:-'prob_pr1954'}
-
-WeightFile=${WeightFile:-'../CNN/weight_finetune_pr1954.h5'}
+WeightFile=${WeightFile:-'../../personnel-records/pr1956.h5'}
 
 python output_prob.py --inputpath=$InputPath --outputpath=$OutputPath --weightfile=$WeightFile --GPU_num=$GPUNum
-
-#advertisement page
-rm -rf "$OutputPath/pr1954_p827_0/"
-rm -rf "$OutputPath/pr1954_p883_0/"

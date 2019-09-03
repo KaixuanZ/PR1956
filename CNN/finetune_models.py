@@ -78,15 +78,15 @@ class DataGenerator(keras.utils.Sequence):
         if self.shuffle == True:
             np.random.shuffle(self.indexes)
 
-def SaveIdNameMap(target_names):
+def SaveIdNameMap(target_names,output_path):
     id_name_map = dict(zip(range(len(target_names)), target_names))
-    outputfile='IdNameMap.json'
+    outputfile=output_path+'IdNameMap.json'
     with open(outputfile, 'w') as outfile:
         json.dump(id_name_map, outfile)
     print('writing id-name map to '+outputfile)
     return 1
 
-def main(trainset,weight_path):
+def main(trainset,weight_path,output_path):
     base_dir = trainset
     clean_names = lambda x: [i for i in x if i[0]!='.']
 
@@ -99,7 +99,7 @@ def main(trainset,weight_path):
         cls.append(len(os.listdir(os.path.join(base_dir,target_name))))
 
     class_number = dict(zip(target_names, cls))
-    SaveIdNameMap(target_names)
+    SaveIdNameMap(target_names,output_path)
 
 
     print(f'There are {num} samples in the dataset. \n For each class, we have {class_number}')
@@ -113,6 +113,7 @@ def main(trainset,weight_path):
     for cls_id, target_name in enumerate(target_names):
         for path in os.listdir(os.path.join(base_dir,target_name)):
             img = cv2.imread(os.path.join(base_dir,target_name,path),  cv2.IMREAD_GRAYSCALE)
+            #import pdb;pdb.set_trace()
             X[idx, :, :] = cv2.resize(img, (width, height))
             y[idx] = cls_id
             idx += 1
@@ -123,7 +124,7 @@ def main(trainset,weight_path):
     val_generator = DataGenerator(X_val, y_val, 64)
 
     base_model = keras.applications.mobilenet.MobileNet(input_shape=(height, width, 1), alpha=1.0,
-                                            depth_multiplier=1, dropout=1e-3, include_top=True,
+                                            depth_multiplier=1, dropout=1e-2, include_top=True,
                                             weights=weight_path, classes=7)
 
     with tf.name_scope("output"):
@@ -141,7 +142,7 @@ def main(trainset,weight_path):
     model.summary()
     #import pdb;pdb.set_trace()
 
-    mc = keras.callbacks.ModelCheckpoint('../../models/weights{epoch:02d}.h5',
+    mc = keras.callbacks.ModelCheckpoint(output_path+'/models/weights{epoch:02d}.h5',
                                              save_weights_only=True, period=1)
 
     reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor='val_acc', factor=0.0050, patience=6, mode='auto', cooldown=0, min_lr=0)
@@ -154,12 +155,13 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Train CNN model')
     parser.add_argument('--trainset', type=str)
     parser.add_argument('--weight_path',type=str)
+    parser.add_argument('--output_path', type=str)
     parser.add_argument('--GPU_num', type=str)
 
     args = parser.parse_args()
 
     os.environ["CUDA_VISIBLE_DEVICES"] = args.GPU_num
-    main(args.trainset,args.weight_path)
+    main(args.trainset,args.weight_path,args.output_path)
 '''
 # ## Test model performance
 

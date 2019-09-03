@@ -41,16 +41,13 @@ def main(inputpath,outputpath,weightfile):
 
     model=LoadModel(height,width,weightfile)
     count=0
-    outputdir=''
-    for dir in clean_names(os.listdir(inputpath)):
-        print("processing image in "+dir)
-        if outputdir != dir[:-2]:
-            outputdir=dir[:-2]
-            if not os.path.isdir(os.path.join(outputpath,outputdir)):
-                os.mkdir(os.path.join(outputpath,outputdir))
-                print('creating directory ' + os.path.join(outputpath,outputdir))
-        for img in clean_names(os.listdir(os.path.join(inputpath,dir))):
-            data= cv2.imread(os.path.join(inputpath,dir,img), cv2.IMREAD_GRAYSCALE)
+    for outputdir in clean_names(os.listdir(inputpath)):
+        print("processing image in "+outputdir)
+        if not os.path.isdir(os.path.join(outputpath,outputdir)):
+            os.mkdir(os.path.join(outputpath,outputdir))
+            print('creating directory ' + os.path.join(outputpath,outputdir))
+        for img in clean_names(os.listdir(os.path.join(inputpath,outputdir))):
+            data= cv2.imread(os.path.join(inputpath,outputdir,img), cv2.IMREAD_GRAYSCALE)
             data= cv2.resize(data, (width, height))
             res = model.predict(data[None,...,None])   #input should have four dimension, here:[N=1,H,W,C=1]
             res = res.tolist()[0]

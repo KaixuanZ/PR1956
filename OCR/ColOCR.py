@@ -5,16 +5,15 @@ from google.cloud import vision
 from google.protobuf.json_format import MessageToJson
 from joblib import Parallel, delayed
 import argparse
-import multiprocessing
 import sys
 sys.path.append('../')
 import Rect
-import cv2
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "jp-manager-885dcc3b4488.json"
 client = vision.ImageAnnotatorClient()
 
 def main(imgdir, outputdir):
+    print("processing "+imgdir)
     if not os.path.isdir(outputdir):
         os.mkdir(outputdir)
         print('creating directory ' + outputdir)

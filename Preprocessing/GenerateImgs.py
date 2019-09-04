@@ -15,6 +15,7 @@ def GetImgFilename(jsonfile):
     return book + '_' + f + '_' + n + '.tif'
 
 def main(imgdir, rectdir, outputdir):
+    print('processing ' + rectdir)
     if not os.path.isdir(outputdir):
         os.mkdir(outputdir)
         print('creating directory ' + outputdir)
@@ -56,5 +57,5 @@ if __name__ == '__main__':
     rectdir = [os.path.join(args.rectdir, dir) for dir in rectdir]
     imgdir = [args.imgdir] * len(rectdir)
 
-    Parallel(n_jobs=1)(map(delayed(main), imgdir, rectdir, outputdir))
-    #Parallel(n_jobs=multiprocessing.cpu_count())(map(delayed(main), imgdir, rectdir, outputdir))
+    #Parallel(n_jobs=1)(map(delayed(main), imgdir, rectdir, outputdir))
+    Parallel(n_jobs=multiprocessing.cpu_count())(map(delayed(main), imgdir, rectdir, outputdir))

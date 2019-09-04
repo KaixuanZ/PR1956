@@ -1,13 +1,9 @@
 import argparse
 from enum import Enum
-import io
 import os
 import json
 import cv2
 import numpy as np
-from google.cloud import vision
-from google.cloud.vision import types
-
 from google.protobuf.json_format import Parse
 from google.cloud.vision_v1.proto import image_annotator_pb2
 

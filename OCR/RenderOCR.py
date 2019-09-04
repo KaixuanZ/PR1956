@@ -7,9 +7,6 @@ import numpy as np
 from google.protobuf.json_format import Parse
 from google.cloud.vision_v1.proto import image_annotator_pb2
 
-import Rect
-
-
 class box(object):
     def __init__(self, bound, confidence):
         self.bound = bound
@@ -67,8 +64,6 @@ def get_document_boxes(ocr_file, feature):
             for paragraph in block.paragraphs:
                 for word in paragraph.words:
                     for symbol in word.symbols:
-                        import pdb;
-                        pdb.set_trace()
                         if (feature == FeatureType.SYMBOL):
                             boxes.append(box(symbol.bounding_box, symbol.confidence))
 

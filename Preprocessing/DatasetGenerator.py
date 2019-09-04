@@ -15,13 +15,9 @@ def OutputImg(img,outputpath,label):
     print("saving image to "+outpath)
 
 def ReadImg(imgpath,row):
-    #for teikoku1957
-    #filename='tk1957_f'+row[1]+'_'+row[2]+'_'+row[3]+'_'+row[4]
-    #filepath=os.path.join(imgpath,filename,row[5].zfill(3)+'.png')
-
-    #for pr1954
-    filename='pr1954_p'+row[1]+'_'+row[2]+'_'+row[3]
-    filepath=os.path.join(imgpath,filename,filename+'_'+row[4]+'.png')
+    #for pr1956
+    filename='pr1956_f'+row[1].zfill(4)+'_'+row[2]+'_'+row[3]
+    filepath=os.path.join(imgpath ,filename ,filename + '_' + row[4] + '_' + str(row[5]).zfill(3)+'.png')
     img=cv2.imread(filepath,0)  #gray img (width height)
     return img
 
@@ -58,7 +54,6 @@ def GetLabelDict(csv_file):
 
 
 if __name__ == '__main__':
-    # load_cls_file(246, 295, '../1954/ocr/cls/')
     parser = argparse.ArgumentParser(description='Generate Dataset')
     parser.add_argument('--imgpath', type=str)
     parser.add_argument('--labelfile', type=str)

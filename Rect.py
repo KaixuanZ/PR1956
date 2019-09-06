@@ -19,10 +19,10 @@ def DistOfRects(rect1,rect2):
     return np.sum((c1-c2)**2)**0.5
 
 
-def RectOnSrcImg(pts, M):
+def RectOnSrcImg(box, M):
     # pts=[[x1,y1],[x2,y2]] can be list or array
-    pts=PtsOnSrcImg(pts, M)
-    return cv2.minAreaRect(pts)
+    box=PtsOnSrcImg(box, M)
+    return cv2.minAreaRect(box)
 
 def PtsOnSrcImg(pts, M):
     #pts=[[x1,y1],[x2,y2]] can be list or array

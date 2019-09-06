@@ -17,6 +17,6 @@ fi
 
 mkdir $OutputPath
 
-WeightFile=${WeightFile:-'../../personnel-records/pr1956.h5'}
+WeightFile=${WeightFile:-'../../personnel-records/1956/pr1956.h5'}
 
 python output_prob.py --inputpath=$InputPath --outputpath=$OutputPath --weightfile=$WeightFile --GPU_num=$GPUNum

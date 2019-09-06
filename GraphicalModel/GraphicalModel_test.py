@@ -12,23 +12,13 @@ class Graph(object):
     def __init__(self):
         self.Nodes=[]
         self.Edges=None
-        self.Blanks=[]  #index of blank on original sequence
         self.cls=[]
-
-    def RemoveBlank(self):  #for output prob of CNN, "1":"blank"
-        for i in range(len(self.Nodes)-1,0-1,-1):
-            if self.Nodes[i].index(max(self.Nodes[i]))==1:
-                self.Blanks.append(i)
-        for Blank in self.Blanks:
-            self.Nodes.pop(Blank)
-
-    def InsertBlank(self):
-        # import pdb;pdb.set_trace()
-        for i in range(len(self.Blanks)-1,0-1,-1):
-            self.cls.insert(self.Blanks[i],1)
 
     def AddNodes(self,Nodes):
         Nodes=np.array(Nodes)
+        if Nodes[1]>0.9:
+            #Nodes=Nodes*0
+            Nodes[1]*=5
         Nodes/=np.sum(Nodes)        #check the sum of prob should be 1
         self.Nodes.append(Nodes.tolist())
 
@@ -54,10 +44,10 @@ class Graph(object):
         return self.cls
 
 def GetMappingDict(f=0):    # f=0: cls2GT ; f=1: GT2cls
-    with open('IdNameMap_pr1954.json') as jsonfile:
+    with open('../../personnel-records/1956/IdNameMap.json') as jsonfile:
         Id2Name_cls = json.load(jsonfile)
     #print(Id2Name_cls)
-    with open('label_pr1954.csv') as csv_file:
+    with open('../../personnel-records/1956/csv/Id2Name_label.csv') as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
         line_count = 0
         Name2Id_GT={}
@@ -75,9 +65,10 @@ def GetMappingDict(f=0):    # f=0: cls2GT ; f=1: GT2cls
     return Dict
 
 def TestAcc(graph):
+    print("test accuracy")
     #compute Confusion Mat and acc for each class
     cls2GT=GetMappingDict() # mapping from classification result to ground truth
-    GT = GetGroundTruth('../Preprocessing/testset_pr1954.csv')
+    GT = GetGroundTruth('../../personnel-records/1956/csv/testset_pr1956.csv')
     ConfMat=np.zeros([len(cls2GT),len(cls2GT)])
     cls,acc = graph.CNNClassification(),0
     import pdb;
@@ -103,9 +94,6 @@ def TestAcc(graph):
     pdb.set_trace()
 
     ConfMat = np.zeros([len(cls2GT), len(cls2GT)])
-    graph.RemoveBlank()
-    graph.Decode()
-    graph.InsertBlank()
     cls, acc = graph.cls, 0
     for i in range(len(cls)):
         ConfMat[cls2GT[cls[i]], GT[i]] += 1
@@ -137,28 +125,14 @@ def GetGroundTruth(path,RemoveBlank=False):
 
 def EstTransMat(method):
     #transition matrix labeled by human knowledge. array[i][j]=1 : transition from class i to class j is possible
-    '''
-    # matrix for teikoku 1957
-    Dim=9
-    manual = [[1, 1, 0, 1, 0, 0, 0, 1, 0],  # 0
-             [0, 0, 0, 1, 0, 0, 0, 1, 0],  # 1
-             [1, 1, 1, 1, 1, 1, 1, 1, 0],  # 2
-             [1, 1, 1, 1, 1, 1, 1, 1, 1],  # 3
-             [1, 1, 1, 1, 1, 1, 1, 1, 0],  # 4
-             [0, 0, 1, 1, 1, 1, 0, 0, 0],  # 5
-             [0, 0, 1, 1, 0, 0, 0, 0, 0],  # 6
-             [0, 0, 0, 1, 0, 0, 0, 1, 1],  # 7
-             [0, 0, 0, 1, 1, 0, 0, 0, 1], ]  # 8
-    '''
 
-    Dim=7
-    manual = [[1, 1, 0, 1, 0, 1, 1],  # 0
-             [1, 1, 1, 1, 1, 1, 1],  # 1
-             [1, 1, 1, 1, 0, 0, 0],  # 2
-             [1, 1, 1, 1, 1, 1, 1],  # 3
-             [0, 1, 1, 1, 1, 0, 0],  # 4
-             [0, 1, 0, 1, 1, 1, 1],  # 5
-             [0, 1, 0, 1, 1, 1, 1], ]  # 6
+    Dim=6
+    manual = [[1, 0, 0, 0, 0, 1],  # 0  address
+             [1, 1, 0, 0, 0, 0],  # 1   company
+             [0, 0, 1, 1, 0, 1],  # 2   personnel
+             [0, 0, 0, 1, 0, 1],  # 3   table
+             [0, 1, 1, 1, 1, 1],  # 4   value
+             [0, 1, 1, 1, 1, 1], ]  # 5 variable
 
     if method==DEFAULT:
         return [[1/Dim]*Dim]*Dim
@@ -168,12 +142,12 @@ def EstTransMat(method):
         return manual
     elif method==AUTO:
         count=np.ones([Dim,Dim])
-        labels=GetGroundTruth('../Preprocessing/trainset_pr1954.csv',RemoveBlank=True)
+        labels=GetGroundTruth('../../personnel-records/1956/csv/trainset_pr1956.csv',RemoveBlank=False)
         GT2cls=GetMappingDict(1)
         for i in range(len(labels)-1):
             count[GT2cls[labels[i]]][GT2cls[labels[i+1]]]+=1
-        #import pdb;
-        #pdb.set_trace()
+        import pdb;
+        pdb.set_trace()
         #return count.tolist()
         return np.multiply(count, np.array(manual)).tolist()
     print("input error for function EstTransMat()")
@@ -184,15 +158,19 @@ def main(path):
 
     graph=Graph()
     #get values on nodes
-    file='pr1954_p837_1'
-    for jsonfile in sorted(os.listdir(os.path.join(path,file))):
+    file='pr1956_f0127_2_1'
+    for jsonfile in sorted(clean_names(os.listdir(os.path.join(path,file)))):
         with open(os.path.join(path,file,jsonfile)) as inputfile:
             prob = json.load(inputfile)
             graph.AddNodes([*prob.values()])
+    print("finish building graph")
     #get values on edges
-    graph.SetEdges(EstTransMat(AUTO))
+    graph.SetEdges(EstTransMat(MANUAL))
 
     TestAcc(graph)
+
+    import pdb;
+    pdb.set_trace()
 
 if __name__ == '__main__':
     # construct the argument parse and parse the arguments

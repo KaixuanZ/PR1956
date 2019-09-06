@@ -1,17 +1,28 @@
 #!/usr/bin/env bash
 
-#InputPath=${InputPath:-'../../personnel-records/1954/prob/'}
-InputPath=${InputPath:-'../../data/'}
+InputPath=${InputPath:-'../../personnel-records/1956/prob/'}
 
-OutputPath=${OutputPath:-'../../personnel-records/1954/cls/'}
+OutputPath=${OutputPath:-'../../personnel-records/1956/cls/'}
 
-LabelFile=${LabelFile:-'../../personnel-records/1954/csv/trainset_pr1954.csv'}
+Trainset=${Trainset:-'../../personnel-records/1956/csv/trainset_pr1956.csv'}
 
-rm -rf $OutputPath
+Id2Name_cls=${Id2Name_cls:-'../../personnel-records/1956/IdNameMap.json'}
 
-mkdir $OutputPath
+Id2Name_label=${Id2Name_label:-'../../personnel-records/1956/csv/Id2Name_label.csv'}
 
-python GraphicalModel.py --inputpath=$InputPath --outputpath=$OutputPath --labelfile=$LabelFile
+
+read -p "Do you want to remove previous output in $OutputPath? (y/n) " -n 1 -r
+echo -e "\n"
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+    echo "removing $OutputPath"
+
+    rm $OutputPath --recursive
+
+    mkdir $OutputPath
+fi
+
+python GraphicalModel.py --inputpath=$InputPath --outputpath=$OutputPath --trainset=$Trainset --id2name_cls=$Id2Name_cls --id2name_label=$Id2Name_label
 
 python CountCName.py
 

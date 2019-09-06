@@ -4,7 +4,7 @@
 #remember to generate prob with data from row3
 #the current result is for row2, image number/labels are different
 
-InputPath=${InputPath:-'prob_pr1954/'}
+InputPath=${InputPath:-'../../personnel-records/1956/prob/'}
 
 python GraphicalModel_test.py --inputpath=$InputPath
 

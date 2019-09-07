@@ -77,19 +77,21 @@ class Row(object):
 
 
 def assign_document_word_to_row(word, rows):
-    index = -1
-    max_area = 0
+    areas,dists = [],[]
     box = np.array([[word.bounding_box.vertices[0].x, word.bounding_box.vertices[0].y],
                     [word.bounding_box.vertices[1].x, word.bounding_box.vertices[1].y],
                     [word.bounding_box.vertices[2].x, word.bounding_box.vertices[2].y],
                     [word.bounding_box.vertices[3].x, word.bounding_box.vertices[3].y]])
     word_rect = cv2.minAreaRect(box)
     for i in range(len(rows)):
-        # import pdb; pdb.set_trace()
-        area = Rect.AreaOfOverlap(word_rect, rows[i].row_rect)
-        # import pdb; pdb.set_trace()
-        if max_area < area:
-            max_area, index = area, i
+        areas.append(Rect.AreaOfOverlap(word_rect, rows[i].row_rect))
+        dists.append(Rect.DistOfRects(word_rect, rows[i].row_rect))
+    max_area=0
+    if max(areas)>0:
+        max_area=max(areas)
+        index=areas.index(max_area)
+    else:
+        index=dists.index(min(dists))
     rows[index].words.append(MessageToDict(word))
     rows[index].AOIs.append(max_area / word_rect[1][0] / word_rect[1][1])
 
@@ -128,7 +130,6 @@ def OCRwithRow(image_file, col_rect_json, row_rect_dir, ocr_file, fileout='tmp.j
     _, M = Rect.CropRect(img, col_rect)
 
     rows = []
-    row_rects = {}
     for row_rect_file in dict[0]:  # files for row_rect in first col
         # trans row_rect into the coordinate of col img
         with open(os.path.join(row_rect_dir, row_rect_file)) as jsonfile:

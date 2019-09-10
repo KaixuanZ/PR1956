@@ -2,7 +2,7 @@
 
 ImgPath=${ImgPath:-'../../personnel-records/1956/scans/parsed'}
 
-ColPath=${ROIPath:-'../../personnel-records/1956/seg/col_rect'}
+ColPath=${ColPath:-'../../personnel-records/1956/seg/col_rect'}
 
 OutputPath=${OutputPath:-'../../personnel-records/1956/seg/row_rect'}
 

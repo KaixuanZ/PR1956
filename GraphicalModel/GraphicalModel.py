@@ -8,6 +8,8 @@ import copy
 
 DEFAULT,MANUAL,AUTO=0,1,2
 
+#use linear chain CRF to improve the classfication accuracy. Output are saved in json format.
+
 class Graph(object):
     def __init__(self):
         self.Nodes=[]
@@ -105,8 +107,6 @@ def EstTransMat(labelfile, id2name_label, id2name_cls, method):
         GT2cls=GetMappingDict(id2name_label, id2name_cls, 1)
         for i in range(len(labels)-1):
             count[GT2cls[labels[i]]][GT2cls[labels[i+1]]]+=1
-        #import pdb;pdb.set_trace()
-        #return count.tolist()
         return np.multiply(count, np.array(manual)).tolist()
     print("input error for function EstTransMat()")
     return None

@@ -68,9 +68,9 @@ class Row(object):
                         row2 = row1 + [None, symbol['confidence'], symbol['text']]
                     except:
                         row2 = row1 + [None, None, symbol['text']]
-                data.append(tuple(row2))
+                data.append(row2)
         if len(self.words)==0:
-            data.append(tuple(row))
+            data.append(row+[None]*6)
         df = pd.DataFrame.from_records(data, columns=label)
         df.insert(len(label), 'text', text)
 
@@ -197,7 +197,7 @@ def main(page_dir, args):
         if not os.path.isdir(json_dir):
             os.mkdir(json_dir)
         jsonfile = os.path.join(json_dir,page_dir+"_"+rows[i].key['row']+".json")
-        rows[i].ToJson(jsonfile,i%50==0)
+        rows[i].ToJson(jsonfile,i%100==0)
 
     #save results to csv
     if not os.path.isdir(os.path.join(args.output_dir,'csv')):

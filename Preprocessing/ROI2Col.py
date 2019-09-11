@@ -9,7 +9,7 @@ import sys
 sys.path.append('../')
 import Rect
 
-# read image and detected bounding box, output the image with bounding box
+#input original scanned img and ROI (text region) bbox, output column bbox
 
 def GetImgFilename(jsonfile):
     book, f, n , p = jsonfile.split('.')[0].split('_')
@@ -51,7 +51,6 @@ def main(ROIfilename,imgdir,ROIdir,outputdir):
         rect = json.load(file)
 
     warped, M = Rect.CropRect(img, rect)
-    M_inv = np.linalg.inv(M)
 
     #local binarization
     warped_b = cv2.adaptiveThreshold(warped, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 15, threshold1)

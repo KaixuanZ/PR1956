@@ -10,7 +10,7 @@ import sys
 sys.path.append('../')
 import Rect
 
-# read image and detected bounding box, output the image with bounding box
+#input original scanned img and column bbox, output row bbox
 
 class WarpedImg(object):
     def __init__(self, warpedImg_b, M, colRect, rowHeight=None):

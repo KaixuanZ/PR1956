@@ -3,8 +3,9 @@ import numpy as np
 import cv2
 import json
 import argparse
-import time
 from joblib import Parallel, delayed
+
+#input scanned img, output bbox of page
 
 def MahalonobisDistance(x, mean, cov):
     # definition of M-distance, not used in this file

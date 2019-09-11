@@ -3,20 +3,28 @@
 #preparing dataset
 cd Preprocessing
 
-    #./GenerateDataset.sh
+    ./Img2Page.sh
+    ./RemoveAdPage.sh
+    ./Page2ROI.sh
+    ./ROI2Col.sh
+    ./RemoveMinistry.sh
+    ./Col2Row.sh
+    ./GenerateDataset.sh
 
+cd ..
+
+#ocr each col
+cd OCR
+    ./ColOCR
 cd ..
 
 #train and test the neural net
 cd CNN
 
-    #train a model from scratch with a huge amount of data from teikoku1924
-    #./train.sh
+    #finetune the pretrained model with a few data from PR1956
+    ./finetune.sh
 
-    #finetune the pretrained model with a few data from teikoku1957
-    #./finetune.sh
-
-    #test performance on test data of teikoku1957
+    #test performance on test data of PR1956
     ./test.sh
 
 cd ..
@@ -24,12 +32,12 @@ cd ..
 #improve the performance
 cd GraphicalModel
 
-    ProbFile='probability'
-
     #save predicted probability of each class as json
-    #./output_prob.sh   --InputPath='testimg'   --OutputPath=$ProbFile
+    ./output_prob.sh
 
     #improve the classification performance by applying graphical model
-    ./GraphicalModel.sh --InputPath=$ProbFile
+    ./GraphicalModel.sh
 
 cd ..
+
+./CombineRes.sh

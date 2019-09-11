@@ -1,31 +1,36 @@
+#includes functions related with Rect computation
+
 import numpy as np
 import cv2
 from shapely.geometry import Polygon
 
 def AreaOfOverlap(rect1,rect2,rect=True):
+    #return the size of intersection area of rect1 and rect2
     if rect:
         rect1 = Polygon(cv2.boxPoints(tuple(rect1)))
         rect2 = Polygon(cv2.boxPoints(tuple(rect2)))
     return rect1.intersection(rect2).area
 
 def CombineRects(rect1,rect2):
+    #return a minAreaRect which contains rect1 and rect2
     box1=cv2.boxPoints(tuple(rect1))
     box2=cv2.boxPoints(tuple(rect2))
     box=np.concatenate((box1,box2),axis=0)
     return cv2.minAreaRect(box)
 
 def DistOfRects(rect1,rect2):
+    #return the L2 distance of centers of two rects
     c1,c2=np.array(rect1[0]),np.array(rect2[0])
     return np.sum((c1-c2)**2)**0.5
 
 
 def RectOnSrcImg(box, M):
-    # pts=[[x1,y1],[x2,y2]] can be list or array
+    # Given box on dst img, and transformation M from src to dst, return the box on src img.
     box=PtsOnSrcImg(box, M)
     return cv2.minAreaRect(box)
 
 def PtsOnSrcImg(pts, M):
-    #pts=[[x1,y1],[x2,y2]] can be list or array
+    #Given pts on dst img, and transformation M from src to dst, return the pts on src img.
     pts = np.array(pts)
     pts = np.concatenate((pts, np.ones([pts.shape[0], 1])), axis=1)
     M_inv = np.linalg.inv(M)
@@ -56,6 +61,7 @@ def OrderPoints(pts):
 
 
 def CropRect(img, rect):
+    #crop img w.r.t. rect, return the warped img and the transformation M (from src to dst)
     box = cv2.boxPoints(tuple(rect))
     box = OrderPoints(box)
     # get width and height of the detected rectangle

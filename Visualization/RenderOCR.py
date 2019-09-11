@@ -4,7 +4,8 @@ import io
 import os
 from google.cloud import vision
 from google.cloud.vision import types
-from PIL import Image, ImageDraw
+import numpy as np
+import cv2
 
 
 client = vision.ImageAnnotatorClient()
@@ -23,23 +24,21 @@ class FeatureType(Enum):
     SYMBOL = 5
 
 
-def draw_boxes(image, boxes, color):
+def draw_boxes(image, boxes):
     """Draw a border around the image using the hints in the vector list."""
-    draw = ImageDraw.Draw(image)
-
     for box in boxes:
         if box.confidence > 0.8:
-            color = 'green'
+            color = [34, 139, 34]
         elif box.confidence > 0.5:
-            color = 'orange'
+            color = [0, 140, 255]
         else:
-            color = 'red'
+            color = [0, 0, 255]
         # import pdb; pdb.set_trace()
-        draw.polygon([
-            box.bound.vertices[0].x, box.bound.vertices[0].y,
-            box.bound.vertices[1].x, box.bound.vertices[1].y,
-            box.bound.vertices[2].x, box.bound.vertices[2].y,
-            box.bound.vertices[3].x, box.bound.vertices[3].y], None, color)
+        box = np.array([[box.bound.vertices[0].x, box.bound.vertices[0].y],
+                        [box.bound.vertices[1].x, box.bound.vertices[1].y],
+                        [box.bound.vertices[2].x, box.bound.vertices[2].y],
+                        [box.bound.vertices[3].x, box.bound.vertices[3].y]])
+        cv2.drawContours(image, [box], 0, (0, 0, 255), color)
     return image
 
 
@@ -76,19 +75,12 @@ def get_document_boxes(image_file, feature):
     return boxes
 
 
-def render_doc_text(filein, fileout):
-    image = Image.open(filein)
-    # bounds = get_document_bounds(filein, FeatureType.PAGE)
-    # draw_boxes(image, bounds, 'blue')
-    # bounds = get_document_bounds(filein, FeatureType.WORD)
-    # draw_boxes(image, bounds, 'red')
+def render_doc_text(filein, fileout='tmp.png'):
+    image = cv2.imread(filein)
     boxes = get_document_boxes(filein, FeatureType.SYMBOL)
-    draw_boxes(image, boxes, 'red')  # 'yellow'
+    draw_boxes(image, boxes)
 
-    if fileout is not 0:
-        image.save(fileout)
-    else:
-        image.show()
+    cv2.imwrite(fileout,image)
 
 
 

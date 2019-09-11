@@ -1,6 +1,9 @@
 #combine the results of row segmentation, row classification, and OCR output
 
+from joblib import Parallel, delayed
 import argparse
+import sys
+import multiprocessing
 import os
 import json
 import cv2
@@ -66,7 +69,8 @@ class Row(object):
                     except:
                         row2 = row1 + [None, None, symbol['text']]
                 data.append(tuple(row2))
-
+        if len(self.words)==0:
+            data.append(tuple(row))
         df = pd.DataFrame.from_records(data, columns=label)
         df.insert(len(label), 'text', text)
 
@@ -126,6 +130,7 @@ def assign_document_words_to_row(ocr_file, rows):
             for paragraph in block.paragraphs:
                 for word in paragraph.words:
                     assign_document_word_to_row(word, rows)
+    return rows
 
 
 def CombineResToRow(img, col_rect_json, row_rect_json, cls):
@@ -133,7 +138,6 @@ def CombineResToRow(img, col_rect_json, row_rect_json, cls):
         col_rect = json.load(jsonfile)
     _, M = Rect.CropRect(img, col_rect)
     M = np.linalg.inv(M)
-    rows = []
 
     with open(row_rect_json) as jsonfile:
         row_rect = json.load(jsonfile)
@@ -152,52 +156,66 @@ def SaveRowsToCSV(rows,output_file):
     else:
         print("no data for writing to CSV")
 
-def main(args):
-    row_rect_dirs=sorted(clean_names(os.listdir(args.row_rect_dir)))
+def main(page_dir, args):
+    print("processing "+page_dir)
 
-    for row_rect_dir in row_rect_dirs:
-        print("processing "+row_rect_dir)
-        #read in image
-        book,file,subfile,page = row_rect_dir.split('_')
-        imgfile=book+"_"+file[0]+str(int(file[1:]))+"_"+subfile+".tif"
-        img=cv2.imread(os.path.join(args.img_dir,imgfile))
+    #read in image
+    book,file,subfile,page = page_dir.split('_')
+    imgfile=book+"_"+file[0]+str(int(file[1:]))+"_"+subfile+".tif"
+    img=cv2.imread(os.path.join(args.img_dir,imgfile))
 
-        cls_json=os.path.join(args.row_cls_dir,row_rect_dir+'.json')
-        with open(cls_json) as jsonfile:
-            cls=json.load(jsonfile)
-        cls=cls["name"]
-        row_rect_files=sorted(clean_names(os.listdir(os.path.join(args.row_rect_dir,row_rect_dir))))
+    cls_json=os.path.join(args.row_cls_dir,page_dir+'.json')
+    with open(cls_json) as jsonfile:
+        cls=json.load(jsonfile)
+    cls=cls["name"]
+    row_rect_files=sorted(clean_names(os.listdir(os.path.join(args.row_rect_dir,page_dir))))
 
-        rows=[]
-        #get class Row
-        for i in range(len(row_rect_files)):
-            row_rect_json = row_rect_files[i]
-            row_rect = os.path.join(args.row_rect_dir,row_rect_dir,row_rect_json)
-            col_rect_json = row_rect_json[:-9]+row_rect_json[-5:]
-            col_rect = os.path.join(args.col_rect_dir, row_rect_dir, col_rect_json)
-            rows.append(CombineResToRow(img, col_rect, row_rect, cls[i]))
-        #combine OCR with row
-        for ocr_json in sorted(clean_names(os.listdir(os.path.join(args.OCR_dir, row_rect_dir)))):
-            ocr_json = os.path.join(args.OCR_dir, row_rect_dir, ocr_json)
-            assign_document_words_to_row(ocr_json, rows)
+    rows=[]
+    row_nums=[0,0,0,0,0]
+    #get class Row
+    for i in range(len(row_rect_files)):
+        row_rect_json = row_rect_files[i]
+        row_rect = os.path.join(args.row_rect_dir,page_dir,row_rect_json)
+        col_rect_json = row_rect_json[:-9]+row_rect_json[-5:]
+        col_rect = os.path.join(args.col_rect_dir, page_dir, col_rect_json)
+        rows.append(CombineResToRow(img, col_rect, row_rect, cls[i]))
+        row_nums[int(rows[i].key['col'])]+=1
+    #combine OCR with row
+    ocr_jsons = sorted(clean_names(os.listdir(os.path.join(args.OCR_dir, page_dir))))
 
-        #save results to json
-        if not os.path.isdir(os.path.join(args.output_dir,'json')):
-            os.mkdir(os.path.join(args.output_dir,'json'))
-            print('creating directory ' + os.path.join(args.output_dir,'json'))
-        for i in range(len(rows)):
-            json_dir = os.path.join(args.output_dir,'json',row_rect_dir)
-            if not os.path.isdir(json_dir):
-                os.mkdir(json_dir)
-            jsonfile = os.path.join(json_dir,row_rect_dir+"_"+rows[i].key['row']+".json")
-            rows[i].ToJson(jsonfile,i%50==0)
-        #save results to csv
-        if not os.path.isdir(os.path.join(args.output_dir,'csv')):
-            os.mkdir(os.path.join(args.output_dir,'csv'))
-            print(os.path.join(args.output_dir,'csv'))
-        SaveRowsToCSV(rows,os.path.join(args.output_dir,'csv',row_rect_dir+'.csv'))
+    for i in range(len(ocr_jsons)):
+        ocr_json = os.path.join(args.OCR_dir, page_dir, ocr_jsons[i])
+        l,r = sum(row_nums[:i]),sum(row_nums[:i+1])
+        rows = rows[:l]+ assign_document_words_to_row(ocr_json, rows[l:r]) +rows[r:]
+
+    #save results to json
+    if not os.path.isdir(os.path.join(args.output_dir,'json')):
+        os.mkdir(os.path.join(args.output_dir,'json'))
+        print('creating directory ' + os.path.join(args.output_dir,'json'))
+    for i in range(len(rows)):
+        json_dir = os.path.join(args.output_dir,'json',page_dir)
+        if not os.path.isdir(json_dir):
+            os.mkdir(json_dir)
+        jsonfile = os.path.join(json_dir,page_dir+"_"+rows[i].key['row']+".json")
+        rows[i].ToJson(jsonfile,i%50==0)
+
+    #save results to csv
+    if not os.path.isdir(os.path.join(args.output_dir,'csv')):
+        os.mkdir(os.path.join(args.output_dir,'csv'))
+        print(os.path.join(args.output_dir,'csv'))
+    SaveRowsToCSV(rows,os.path.join(args.output_dir,'csv',page_dir+'.csv'))
 
         #import pdb;pdb.set_trace()
+
+class Args(object):
+    def __init__(self, args):
+        self.img_dir = args.img_dir
+        self.col_rect_dir = args.col_rect_dir
+        self.row_rect_dir = args.row_rect_dir
+        self.row_cls_dir = args.row_cls_dir
+        self.OCR_dir = args.OCR_dir
+        self.output_dir = args.output_dir
+
 
 if __name__ == '__main__':
     # construct the argument parse and parse the arguments
@@ -214,4 +232,8 @@ if __name__ == '__main__':
         os.mkdir(args.output_dir)
         print('creating directory ' + args.output_dir)
 
-    main(args)
+    page_dirs = sorted(clean_names(os.listdir(args.row_rect_dir)))
+    n = len(page_dirs)
+    args = [args] * n
+    #Parallel(n_jobs=1)(map(delayed(main), page_dirs, args))
+    Parallel(n_jobs=multiprocessing.cpu_count())(map(delayed(main), page_dirs, args))

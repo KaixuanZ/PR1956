@@ -1,5 +1,5 @@
 # HarvardAHA
 
-/Preprocessing finished.
+Pipeline for PR1956 finished
 
-working on /OCR
+applying the pipeline for PR1954

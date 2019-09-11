@@ -1,4 +1,4 @@
-#combine the results of row segmentation, row classification, and OCR output
+#combine the results of row segmentation, row classification, and OCR output. Output format can be csv or json.
 
 from joblib import Parallel, delayed
 import argparse
@@ -108,9 +108,11 @@ def assign_document_word_to_row(word, rows):
         dists.append(Rect.DistOfRects(word_rect, rows[i].row_rect))
     max_area=0
     if max(areas)>0:
+        #assign word to the row_img with max_area
         max_area=max(areas)
         index=areas.index(max_area)
     else:
+        #if the word has no intersection with any row img, assign it to closest row_img
         index=dists.index(min(dists))
     rows[index].words.append(MessageToDict(word))
     rows[index].AOIs.append(max_area / word_rect[1][0] / word_rect[1][1])

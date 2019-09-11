@@ -9,7 +9,7 @@ sys.path.append('../')
 import Rect
 import multiprocessing
 
-# read image and detected bounding box, output the image with bounding box
+#input original image and page bbox, output ROI (text region) bbox
 
 def ExpandCol(rect,n):
     rect = [list(rect[0]), list(rect[1]), rect[2]]

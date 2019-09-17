@@ -40,10 +40,9 @@ def TrainGaussian(file):
 
 def Zeropadding(filename):
     filename = filename.split('.')[0]
-    book, f, n = filename.split('_')
-    f = f[0] + f[1:].zfill(4)   #zeropadding
-    n = n
-    return book + '_' + f + '_' + n
+    book, p = filename.split('_')
+    p = p[0] + p[1:].zfill(4)   #zeropadding
+    return book + '_' + p
 
 def OutputRect(outputdir,filename,rect,splitPage=False):
     if splitPage:
@@ -73,17 +72,18 @@ def OutputRect(outputdir,filename,rect,splitPage=False):
             json.dump(rect, outfile)
             print('writing results to ' + os.path.join(outputdir, filename))
 
-def main(filename,inputdir,outputdir):
-    #file = 'trainset/1.tif'
+def main(filename,args):
+    #file = '1.tif'
     #mean, cov = TrainGaussian(file)
-    mean=np.array([20.76549421, 68.80967093])
-    cov=np.array([[ 2.00308826, -7.05376449],
-           [-7.05376449, 46.9934228 ]])
-    thr = 2.5
+    #import pdb;pdb.set_trace()
+    mean=np.array([21.10017766, 54.98637383])
+    cov=np.array([[ 1.60955243, -3.2812577 ],
+       [-3.2812577 , 27.98176373]])
+    thr = 4
 
     print("processing ",filename)
 
-    img = cv2.imread(os.path.join(inputdir, filename))
+    img = cv2.imread(os.path.join(args.inputdir, filename))
 
     #downsample, faster processing
     img_downsample = cv2.pyrDown(cv2.pyrDown(cv2.pyrDown(img)))
@@ -95,7 +95,7 @@ def main(filename,inputdir,outputdir):
     mask_HS = SegByMahalonobisDistance(img_hsv[:, :, 0:2], mean, cov, thr)
 
     #seg in V space
-    mask_V = img_hsv[:,:,2]>190
+    mask_V = img_hsv[:,:,2]>175
 
     #combine them
     mask = mask_HS * mask_V
@@ -113,27 +113,28 @@ def main(filename,inputdir,outputdir):
             size2=np.sum((labels==i).astype(int))
             label2=i
     # fit a rect
-    cnts, _ = cv2.findContours((labels == label1).astype(np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+    _, cnts, _ = cv2.findContours((labels == label1).astype(np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     rect0 = cv2.minAreaRect(cnts[0] * k)
 
     filename=Zeropadding(filename)
     # seg pages to page if necessary
     if rect0[1][0]*rect0[1][1]>0.76*img.shape[0]*img.shape[1]:
         print("split rect")
-        OutputRect(outputdir,filename,rect0,splitPage=True)
+        OutputRect(args.outputdir,filename,rect0,splitPage=True)
     elif rect0[1][0]*rect0[1][1]>0.38*img.shape[0]*img.shape[1]:
         #page(s) may be detected seperately
-        cnts1,_ = cv2.findContours((labels==label2).astype(np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE )
+        _, cnts1,_ = cv2.findContours((labels==label2).astype(np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE )
         rect1=cv2.minAreaRect(cnts1[0]*k)
         if rect1[1][0]*rect1[1][1]>0.38*img.shape[0]*img.shape[1]:
             if rect0[0][0]<rect1[0][0]:
-                OutputRect(outputdir,filename + '_0.json',rect0)
-                OutputRect(outputdir,filename + '_1.json',rect1)
+                OutputRect(args.outputdir,filename + '_0.json',rect0)
+                OutputRect(args.outputdir,filename + '_1.json',rect1)
             else:
-                OutputRect(outputdir,filename + '_0.json',rect1)
-                OutputRect(outputdir,filename + '_1.json',rect0)
+                OutputRect(args.outputdir,filename + '_0.json',rect1)
+                OutputRect(args.outputdir,filename + '_1.json',rect0)
         else:
-            OutputRect(outputdir,filename + '_0.json',rect0)
+            OutputRect(args.outputdir,filename + '_0.json',rect0)
             print("\n warning: only one output for "+filename+"\n")
     else:
         print("\n warning: no output for "+filename+"\n")
@@ -141,19 +142,16 @@ def main(filename,inputdir,outputdir):
 if __name__ == '__main__':
     # construct the argument parse and parse the arguments
     parser = argparse.ArgumentParser(description='Page Detection')
-    parser.add_argument('--inputpath', type=str)
-    parser.add_argument('--outputpath', type=str)
+    parser.add_argument('--inputdir', type=str)
+    parser.add_argument('--outputdir', type=str)
     args = parser.parse_args()
 
     #create output file
-    if not os.path.isdir(args.outputpath):
-        os.mkdir(args.outputpath)
-        print('creating directory ' + args.outputpath)
+    if not os.path.isdir(args.outputdir):
+        os.mkdir(args.outputdir)
+        print('creating directory ' + args.outputdir)
 
     clean_names = lambda x: [i for i in x if i[0] != '.']
-    filenames = os.listdir(args.inputpath)
-    filenames = sorted(clean_names(filenames))
-    inputdir=[args.inputpath] * len(filenames)
-    outputdir=[args.outputpath] * len(filenames)
-
-    Parallel(n_jobs=36)(map(delayed(main), filenames,inputdir,outputdir))
+    filenames = sorted(clean_names(os.listdir(args.inputdir)))
+    args=[args]*len(filenames)
+    Parallel(n_jobs=2)(map(delayed(main), filenames,args))

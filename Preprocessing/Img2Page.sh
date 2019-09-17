@@ -1,11 +1,19 @@
 #!/usr/bin/env bash
 
-InputPath=${InputPath:-'../../personnel-records/1956/scans/parsed/'}
+InputPath=${InputPath:-'../../raw_data/personnel-records/1954/scans/tiff/'}
 
-OutputPath=${OutputPath:-'../../personnel-records/1956/seg/page_rect/'}
+OutputPath=${OutputPath:-'../../results/personnel-records/1954/seg/page_rect/'}
 
-#rm $OutputPath --recursive
 
-python3 Img2Page.py --inputpath=$InputPath --outputpath=$OutputPath 2>&1 | tee log_Img2Page.txt
+read -p "Do you want to remove previous output in $OutputPath? (y/n) " -n 1 -r
+echo -e "\n"
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+    echo "removing $OutputPath"
 
-./RemoveAdPage.sh --Path=$OutputPath
+    rm $OutputPath --recursive
+fi
+
+python3 Img2Page.py --inputdir=$InputPath --outputdir=$OutputPath 2>&1 | tee log_Img2Page.txt
+
+#./RemoveAdPage.sh --Path=$OutputPath

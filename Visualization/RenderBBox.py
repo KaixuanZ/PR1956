@@ -9,24 +9,24 @@ import multiprocessing
 
 def TifFile(jsonfile):
     jsonfile = jsonfile.split('.')[0]
-    book, f, n ,_  = jsonfile.split('_')
-    f = f[0] + str(int(f[1:]))
-    n = n
-    return book + '_' + f + '_' + n + '.tif'
+    book, p, _ = jsonfile.split('_')
+    p = p[0] + str(int(p[1:]))
+    return book + '_' + p + '.tif'
 
 def main(jsonfile,jsondir,imgdir,outputdir):
     print("processing ", jsonfile)
-    files=os.listdir(os.path.join(jsondir,jsonfile))
+
+    file=os.path.join(jsondir,jsonfile)
     scale = 4
     #import pdb;pdb.set_trace()
     img = cv2.imread(os.path.join(imgdir, TifFile(jsonfile)))
     img = cv2.pyrDown(cv2.pyrDown(img))
-    for file in files:
-        with open(os.path.join(jsondir,jsonfile,file)) as rectjson:
-            rect = json.load(rectjson)
-        box = cv2.boxPoints(tuple(rect))
-        box = np.int0(box/scale)
-        cv2.drawContours(img, [box], 0, (0,0,255), 1)
+
+    with open(file) as rectjson:
+        rect = json.load(rectjson)
+    box = cv2.boxPoints(tuple(rect))
+    box = np.int0(box/scale)
+    cv2.drawContours(img, [box], 0, (0,0,255), 2)
     #import pdb;pdb.set_trace()
     cv2.imwrite(os.path.join(outputdir,jsonfile.split('.')[0]+'.png'),img)
 
@@ -50,5 +50,5 @@ if __name__ == '__main__':
     imgdir=[args.imgdir] * len(rowRects)
     outputdir=[args.outputdir] * len(rowRects)
 
-    #Parallel(n_jobs=1)(map(delayed(main), rowRects, jsondir, imgdir, outputdir))
-    Parallel(n_jobs=multiprocessing.cpu_count())(map(delayed(main), rowRects,jsondir,imgdir,outputdir))
+    Parallel(n_jobs=2)(map(delayed(main), rowRects, jsondir, imgdir, outputdir))
+    #Parallel(n_jobs=multiprocessing.cpu_count())(map(delayed(main), rowRects,jsondir,imgdir,outputdir))

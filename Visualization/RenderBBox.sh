@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
-ImgDir=${ImgDir:-'../../personnel-records/1956/scans/parsed'}
+ImgDir=${ImgDir:-'../../raw_data/personnel-records/1954/scans/tiff'}
 
-JsonDir=${JsonDir:-'../../personnel-records/1956/seg/col_rect'}
+JsonDir=${JsonDir:-'../../results/personnel-records/1954/seg/page_rect'}
 
-OutputDir=${OutputDir:-'../../personnel-records/1956/visualization'}
+OutputDir=${OutputDir:-'../../results/personnel-records/1954/visualization'}
 
 read -p "Do you want to remove previous output in $OutputDir? (y/n) " -n 1 -r
 echo -e "\n"

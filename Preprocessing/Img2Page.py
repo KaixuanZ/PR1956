@@ -119,14 +119,14 @@ def main(filename,args):
 
     filename=Zeropadding(filename)
     # seg pages to page if necessary
-    if rect0[1][0]*rect0[1][1]>0.76*img.shape[0]*img.shape[1]:
+    if rect0[1][0]*rect0[1][1]>0.70*img.shape[0]*img.shape[1]:
         print("split rect")
         OutputRect(args.outputdir,filename,rect0,splitPage=True)
-    elif rect0[1][0]*rect0[1][1]>0.38*img.shape[0]*img.shape[1]:
+    elif rect0[1][0]*rect0[1][1]>0.35*img.shape[0]*img.shape[1]:
         #page(s) may be detected seperately
         _, cnts1,_ = cv2.findContours((labels==label2).astype(np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE )
         rect1=cv2.minAreaRect(cnts1[0]*k)
-        if rect1[1][0]*rect1[1][1]>0.38*img.shape[0]*img.shape[1]:
+        if rect1[1][0]*rect1[1][1]>0.35*img.shape[0]*img.shape[1]:
             if rect0[0][0]<rect1[0][0]:
                 OutputRect(args.outputdir,filename + '_0.json',rect0)
                 OutputRect(args.outputdir,filename + '_1.json',rect1)

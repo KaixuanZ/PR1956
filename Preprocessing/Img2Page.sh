@@ -15,5 +15,3 @@ then
 fi
 
 python3 Img2Page.py --inputdir=$InputPath --outputdir=$OutputPath 2>&1 | tee log_Img2Page.txt
-
-#./RemoveAdPage.sh --Path=$OutputPath

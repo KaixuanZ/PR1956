@@ -7,7 +7,6 @@ import argparse
 import sys
 sys.path.append('../')
 import Rect
-import multiprocessing
 
 #input original image and page bbox, output ROI (text region) bbox
 
@@ -26,16 +25,17 @@ def ExpandCol(rect,n):
     return tuple(rect)
 
 def GetImgFilename(jsonfile):
-    book, f, n , p = jsonfile.split('.')[0].split('_')
-    f = f[0] + str(int(f[1:]))
-    return book + '_' + f + '_' + n + '.tif'
+    book, p , _ = jsonfile.split('.')[0].split('_')
+    p = p[0] + str(int(p[1:]))
+    return book + '_' + p + '.tif'
 
-def main(pagefilename,imgdir,pagedir,outputdir):
+def main(pagefilename,args):
+
     print("processing "+pagefilename)
     imgfilename=GetImgFilename(pagefilename)
-    img = cv2.imread(os.path.join(imgdir,imgfilename), 0)
+    img = cv2.imread(os.path.join(args.imgdir,imgfilename), 0)
 
-    with open(os.path.join(pagedir,pagefilename)) as file:
+    with open(os.path.join(args.pagedir,pagefilename)) as file:
         rect = json.load(file)
 
     warped, M = Rect.CropRect(img, rect)
@@ -90,9 +90,9 @@ def main(pagefilename,imgdir,pagedir,outputdir):
     rect=Rect.RectOnSrcImg(box, M)
 
     #save the rect as json
-    with open(os.path.join(outputdir, pagefilename), 'w') as outfile:
+    with open(os.path.join(args.outputdir, pagefilename), 'w') as outfile:
         json.dump(rect, outfile)
-        print('writing results to ' + os.path.join(outputdir, pagefilename))
+        print('writing results to ' + os.path.join(args.outputdir, pagefilename))
 
 
 if __name__ == '__main__':
@@ -109,11 +109,6 @@ if __name__ == '__main__':
         print('creating directory ' + args.outputdir)
 
     clean_names = lambda x: [i for i in x if i[0] != '.']
-    pagefilenames = os.listdir(args.pagedir)
-    pagefilenames = sorted(clean_names(pagefilenames))
-    #pagefilenames = pagefilenames[50:]  #start processing at last checkpoint
-    imgdir = [args.imgdir] * len(pagefilenames)
-    pagedir = [args.pagedir] * len(pagefilenames)
-    outputdir = [args.outputdir] * len(pagefilenames)
+    pagefilenames = sorted(clean_names(os.listdir(args.pagedir)))[10::25]
 
-    Parallel(n_jobs=multiprocessing.cpu_count()-1)(map(delayed(main), pagefilenames,imgdir,pagedir,outputdir))
+    Parallel(n_jobs=-1)(map(delayed(main), pagefilenames,[args]*len(pagefilenames)))

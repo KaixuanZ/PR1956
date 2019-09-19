@@ -7,6 +7,7 @@ import argparse
 import sys
 sys.path.append('../')
 import Rect
+import multiprocessing
 
 #input original image and page bbox, output ROI (text region) bbox
 
@@ -25,18 +26,16 @@ def ExpandCol(rect,n):
     return tuple(rect)
 
 def GetImgFilename(jsonfile):
-    book, p , _ = jsonfile.split('.')[0].split('_')
-    p = p[0] + str(int(p[1:]))
-    return book + '_' + p + '.tif'
+    book, f, n , p = jsonfile.split('.')[0].split('_')
+    f = f[0] + str(int(f[1:]))
+    return book + '_' + f + '_' + n + '.tif'
 
-def main(pagefilename,args):
-
+def main(pagefilename,imgdir,pagedir,outputdir):
     print("processing "+pagefilename)
     imgfilename=GetImgFilename(pagefilename)
+    img = cv2.imread(os.path.join(imgdir,imgfilename), 0)
 
-    img = cv2.imread(os.path.join(args.imgdir,imgfilename), 0)
-
-    with open(os.path.join(args.pagedir,pagefilename)) as file:
+    with open(os.path.join(pagedir,pagefilename)) as file:
         rect = json.load(file)
 
     warped, M = Rect.CropRect(img, rect)
@@ -60,21 +59,18 @@ def main(pagefilename,args):
         if labels[labels == i].shape[0] > warped.shape[0]:  # remove words (small CCL regions)
             HRange, WRange = np.where(labels == i)
             if (max(HRange) - min(HRange)) > 0.4 * warped.shape[0] and (max(HRange) - min(HRange)) / (
-                    max(WRange) - min(WRange)) > 15 and min(WRange)>0.1*warped.shape[1] and max(WRange)<0.9*warped.shape[1]:
+                    max(WRange) - min(WRange)) > 20 and min(WRange)>0.1*warped.shape[1] and max(WRange)<0.9*warped.shape[1]:
                 w = (max(WRange) + min(WRange)) / 2
                 features[i] = min(w, warped.shape[1] - w)
-    # import pdb;pdb.set_trace()
+
     # find the four lines that are most far away from the two sides (some simple classifier)
     if len(features) > 4:
         features = sorted(features.items(), key=lambda kv: kv[1])
         features = features[-4:]
     else:
-        if len(features)>0:
-            features = sorted(features.items(), key=lambda kv: kv[1])
+        features = sorted(features.items(), key=lambda kv: kv[1])
+        if len(features)<4:
             print("warning: less than four vertical lines detected for page "+pagefilename)
-        else:
-            print("warning: no vertical line detected for page " + pagefilename)
-            return 0
     index = [item[0] for item in features]
 
     lines = np.zeros(labels.shape)  # mask for lines
@@ -94,9 +90,9 @@ def main(pagefilename,args):
     rect=Rect.RectOnSrcImg(box, M)
 
     #save the rect as json
-    with open(os.path.join(args.outputdir, pagefilename), 'w') as outfile:
+    with open(os.path.join(outputdir, pagefilename), 'w') as outfile:
         json.dump(rect, outfile)
-        print('writing results to ' + os.path.join(args.outputdir, pagefilename))
+        print('writing results to ' + os.path.join(outputdir, pagefilename))
 
 
 if __name__ == '__main__':
@@ -113,6 +109,11 @@ if __name__ == '__main__':
         print('creating directory ' + args.outputdir)
 
     clean_names = lambda x: [i for i in x if i[0] != '.']
-    pagefilenames = sorted(clean_names(os.listdir(args.pagedir)))[-30::]
+    pagefilenames = os.listdir(args.pagedir)
+    pagefilenames = sorted(clean_names(pagefilenames))
+    #pagefilenames = pagefilenames[50:]  #start processing at last checkpoint
+    imgdir = [args.imgdir] * len(pagefilenames)
+    pagedir = [args.pagedir] * len(pagefilenames)
+    outputdir = [args.outputdir] * len(pagefilenames)
 
-    Parallel(n_jobs=-1)(map(delayed(main), pagefilenames,[args]*len(pagefilenames)))
+    Parallel(n_jobs=multiprocessing.cpu_count()-1)(map(delayed(main), pagefilenames,imgdir,pagedir,outputdir))

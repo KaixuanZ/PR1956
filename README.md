@@ -1,3 +1,5 @@
 # HarvardAHA
 
-applying pipeline of PR1956 to PR1954
+Pipeline for PR1956 finished
+
+applying the pipeline for PR1954

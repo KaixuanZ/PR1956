@@ -2,7 +2,7 @@
 
 ImgDir=${ImgDir:-'../../raw_data/personnel-records/1954/scans/tiff'}
 
-JsonDir=${JsonDir:-'../../results/personnel-records/1954/seg/page_rect'}
+JsonDir=${JsonDir:-'../../results/personnel-records/1954/seg/ROI_rect'}
 
 OutputDir=${OutputDir:-'../../results/personnel-records/1954/visualization'}
 

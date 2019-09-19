@@ -44,11 +44,11 @@ if __name__ == '__main__':
         print('creating directory ' + args.outputdir)
 
     clean_names = lambda x: [i for i in x if i[0] != '.']
-    rowRects = os.listdir(args.jsondir)
-    rowRects = sorted(clean_names(rowRects))
-    jsondir=[args.jsondir] * len(rowRects)
-    imgdir=[args.imgdir] * len(rowRects)
-    outputdir=[args.outputdir] * len(rowRects)
+    rects = os.listdir(args.jsondir)
+    rects = sorted(clean_names(rects))
+    jsondir=[args.jsondir] * len(rects)
+    imgdir=[args.imgdir] * len(rects)
+    outputdir=[args.outputdir] * len(rects)
 
-    Parallel(n_jobs=2)(map(delayed(main), rowRects, jsondir, imgdir, outputdir))
+    Parallel(n_jobs=-1)(map(delayed(main), rects, jsondir, imgdir, outputdir))
     #Parallel(n_jobs=multiprocessing.cpu_count())(map(delayed(main), rowRects,jsondir,imgdir,outputdir))

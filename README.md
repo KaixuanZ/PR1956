@@ -1,5 +1,3 @@
 # HarvardAHA
 
-/Preprocessing finished.
-
-working on /OCR
+Pipeline for PR1956 finished

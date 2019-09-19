@@ -154,4 +154,4 @@ if __name__ == '__main__':
     clean_names = lambda x: [i for i in x if i[0] != '.']
     filenames = sorted(clean_names(os.listdir(args.inputdir)))
     args=[args]*len(filenames)
-    Parallel(n_jobs=2)(map(delayed(main), filenames,args))
+    Parallel(n_jobs=-1)(map(delayed(main), filenames,args))

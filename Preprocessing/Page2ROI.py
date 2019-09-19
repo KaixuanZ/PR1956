@@ -33,6 +33,7 @@ def main(pagefilename,args):
 
     print("processing "+pagefilename)
     imgfilename=GetImgFilename(pagefilename)
+
     img = cv2.imread(os.path.join(args.imgdir,imgfilename), 0)
 
     with open(os.path.join(args.pagedir,pagefilename)) as file:
@@ -59,18 +60,21 @@ def main(pagefilename,args):
         if labels[labels == i].shape[0] > warped.shape[0]:  # remove words (small CCL regions)
             HRange, WRange = np.where(labels == i)
             if (max(HRange) - min(HRange)) > 0.4 * warped.shape[0] and (max(HRange) - min(HRange)) / (
-                    max(WRange) - min(WRange)) > 20 and min(WRange)>0.1*warped.shape[1] and max(WRange)<0.9*warped.shape[1]:
+                    max(WRange) - min(WRange)) > 15 and min(WRange)>0.1*warped.shape[1] and max(WRange)<0.9*warped.shape[1]:
                 w = (max(WRange) + min(WRange)) / 2
                 features[i] = min(w, warped.shape[1] - w)
-
+    # import pdb;pdb.set_trace()
     # find the four lines that are most far away from the two sides (some simple classifier)
     if len(features) > 4:
         features = sorted(features.items(), key=lambda kv: kv[1])
         features = features[-4:]
     else:
-        features = sorted(features.items(), key=lambda kv: kv[1])
-        if len(features)<4:
+        if len(features)>0:
+            features = sorted(features.items(), key=lambda kv: kv[1])
             print("warning: less than four vertical lines detected for page "+pagefilename)
+        else:
+            print("warning: no vertical line detected for page " + pagefilename)
+            return 0
     index = [item[0] for item in features]
 
     lines = np.zeros(labels.shape)  # mask for lines
@@ -109,6 +113,6 @@ if __name__ == '__main__':
         print('creating directory ' + args.outputdir)
 
     clean_names = lambda x: [i for i in x if i[0] != '.']
-    pagefilenames = sorted(clean_names(os.listdir(args.pagedir)))[10::25]
+    pagefilenames = sorted(clean_names(os.listdir(args.pagedir)))[-30::]
 
     Parallel(n_jobs=-1)(map(delayed(main), pagefilenames,[args]*len(pagefilenames)))

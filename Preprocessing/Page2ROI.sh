@@ -16,3 +16,5 @@ then
 fi
 
 python3 Page2ROI.py --imgdir=$ImgPath --pagedir=$PagePath --outputdir=$OutputPath #2>&1 | tee log_ROI.txt
+
+

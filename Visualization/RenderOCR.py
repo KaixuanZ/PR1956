@@ -2,13 +2,15 @@ import argparse
 from enum import Enum
 import io
 import os
-from google.cloud import vision
-from google.cloud.vision import types
 import numpy as np
 import cv2
+import json
+import sys
+sys.path.append('../')
+import Rect
+from google.protobuf.json_format import Parse
+from google.cloud.vision_v1.proto import image_annotator_pb2
 
-
-client = vision.ImageAnnotatorClient()
 
 class box(object):
     def __init__(self, bound, confidence):
@@ -33,34 +35,31 @@ def draw_boxes(image, boxes):
             color = [0, 140, 255]
         else:
             color = [0, 0, 255]
-        # import pdb; pdb.set_trace()
+
         box = np.array([[box.bound.vertices[0].x, box.bound.vertices[0].y],
                         [box.bound.vertices[1].x, box.bound.vertices[1].y],
                         [box.bound.vertices[2].x, box.bound.vertices[2].y],
                         [box.bound.vertices[3].x, box.bound.vertices[3].y]])
-        cv2.drawContours(image, [box], 0, (0, 0, 255), color)
+
+        cv2.drawContours(image, [box], 0, color, 3)
     return image
 
 
-def get_document_boxes(image_file, feature):
+def get_document_boxes(ocr_file, feature):
     """Returns document bounds given an image."""
-    client = vision.ImageAnnotatorClient()
-
     boxes = []
 
-    with io.open(image_file, 'rb') as image_file:
-        content = image_file.read()
+    with open(ocr_file) as json_file:
+        data = json.load(json_file)
+        parsed = image_annotator_pb2.AnnotateImageResponse()
+        Parse(data, parsed)
+        # import pdb; pdb.set_trace()
 
-    image = types.Image(content=content)
-    image_context = vision.types.ImageContext(language_hints=["ja zh*"])
-    response = client.document_text_detection(image=image, image_context=image_context)
-    document = response.full_text_annotation
-    '''
-    texts = response.text_annotations
-    print('Texts:')
-    for text in texts:
-        print('\n"{}"'.format(text.description))
-    '''
+    #texts = parsed.text_annotations
+    #for text in texts:
+    #    print('\n"{}"'.format(text.description))
+    document = parsed.full_text_annotation
+
     # Collect specified feature bounds by enumerating all document features
     for page in document.pages:
         for block in page.blocks:
@@ -75,20 +74,38 @@ def get_document_boxes(image_file, feature):
     return boxes
 
 
-def render_doc_text(filein, fileout='tmp.png'):
-    image = cv2.imread(filein)
-    boxes = get_document_boxes(filein, FeatureType.SYMBOL)
-    draw_boxes(image, boxes)
+def render_doc_text(args):
+    image = cv2.imread(args.img_path)
+    clean_names = lambda x: [i for i in x if i[0] != '.']
+    col_rects = sorted(clean_names(os.listdir(args.rect_dir)))
 
-    cv2.imwrite(fileout,image)
+    gcv_outputs=sorted(clean_names(os.listdir(args.gcv_dir)))
+    for i in range(len(col_rects)):
+        with open(os.path.join(args.rect_dir,col_rects[i])) as rectjson:
+            rect = json.load(rectjson)
+        warped,_=Rect.CropRect(image,rect)
+
+        boxes = get_document_boxes(os.path.join(args.gcv_dir,gcv_outputs[i]), FeatureType.SYMBOL)
+        draw_boxes(warped, boxes)
+
+        output_dir=os.path.join(args.output_dir,col_rects[i].split('.')[0][:-2])
+        if not os.path.isdir(output_dir):
+            os.mkdir(output_dir)
+            print('creating directory ' + output_dir)
+        path=os.path.join(output_dir,col_rects[i].split('.')[0]+'.png')
+
+        cv2.imwrite(path,warped)
+        print("saving visualization results to "+path)
 
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('detect_file', help='The image for text detection.')
-    parser.add_argument('-out_file', help='Optional output file', default=0)
+    parser.add_argument('--img_path', help='The original scanned image.')
+    parser.add_argument('--rect_dir', help='BBox of column on original scanned image.')
+    parser.add_argument('--gcv_dir')
+    parser.add_argument('--output_dir', help='Optional output file')
     args = parser.parse_args()
 
-    render_doc_text(args.detect_file, args.out_file)
+    render_doc_text(args)
 

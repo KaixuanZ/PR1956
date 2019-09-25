@@ -38,6 +38,9 @@ def main(pagefilename,args):
 
     with open(os.path.join(args.pagedir,pagefilename)) as file:
         rect = json.load(file)
+        #manual fix page_rect
+        if "pr1954_p0951_0.json" in pagefilename:
+            rect[0][0]=rect[0][0]*0.8
 
     warped, M = Rect.CropRect(img, rect)
 
@@ -71,7 +74,8 @@ def main(pagefilename,args):
     else:
         if len(features)>0:
             features = sorted(features.items(), key=lambda kv: kv[1])
-            print("warning: less than four vertical lines detected for page "+pagefilename)
+            if len(features)<4:
+                print("warning: less than four vertical lines detected for page "+pagefilename)
         else:
             print("warning: no vertical line detected for page " + pagefilename)
             return 0
@@ -113,6 +117,6 @@ if __name__ == '__main__':
         print('creating directory ' + args.outputdir)
 
     clean_names = lambda x: [i for i in x if i[0] != '.']
-    pagefilenames = sorted(clean_names(os.listdir(args.pagedir)))[-30::]
+    pagefilenames = sorted(clean_names(os.listdir(args.pagedir)))
 
     Parallel(n_jobs=-1)(map(delayed(main), pagefilenames,[args]*len(pagefilenames)))

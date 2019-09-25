@@ -82,7 +82,7 @@ def main(filename,args):
     thr = 4
 
     print("processing ",filename)
-
+    #import pdb;pdb.set_trace()
     img = cv2.imread(os.path.join(args.inputdir, filename))
 
     #downsample, faster processing

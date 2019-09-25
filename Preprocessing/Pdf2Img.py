@@ -11,8 +11,8 @@ def pdf_to_img(filename,input_dir, output_dir):
     for page in pages:
         page.save(output_path,fmt='png')
 
-input_dir="../../raw_data/personnel-records/1954/scans/official_office/"
-output_dir="../../raw_data/personnel-records/1954/scans/official_office/"
+input_dir="../../raw_data/personnel-records/1954/scans/bank/"
+output_dir=input_dir
 clean_names = lambda x: [i for i in x if i[0] != '.' and i.endswith('.pdf')]
 filenames=sorted(clean_names(os.listdir(input_dir)))
 

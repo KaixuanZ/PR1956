@@ -27,7 +27,7 @@ def ExpandCol(rect,n):
 def GetImgFilename(jsonfile):
     book, p , _ = jsonfile.split('.')[0].split('_')
     p = p[0] + str(int(p[1:]))
-    return book + '_' + p + '.tif'
+    return book + '_' + p + '.png'
 
 def main(pagefilename,args):
 

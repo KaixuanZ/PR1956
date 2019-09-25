@@ -7,11 +7,11 @@ import argparse
 import multiprocessing
 #read image and detected bounding box, output the image with bounding box
 
-def TifFile(jsonfile):
+def ImgFile(jsonfile):
     jsonfile = jsonfile.split('.')[0]
     book, p, _ = jsonfile.split('_')
     p = p[0] + str(int(p[1:]))
-    return book + '_' + p + '.tif'
+    return book + '_' + p + '.png'
 
 def main(jsonfile,jsondir,imgdir,outputdir):
     print("processing ", jsonfile)
@@ -19,7 +19,7 @@ def main(jsonfile,jsondir,imgdir,outputdir):
     file=os.path.join(jsondir,jsonfile)
     scale = 4
     #import pdb;pdb.set_trace()
-    img = cv2.imread(os.path.join(imgdir, TifFile(jsonfile)))
+    img = cv2.imread(os.path.join(imgdir, ImgFile(jsonfile)))
     img = cv2.pyrDown(cv2.pyrDown(img))
 
     with open(file) as rectjson:

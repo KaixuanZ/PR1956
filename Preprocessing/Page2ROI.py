@@ -30,7 +30,6 @@ def GetImgFilename(jsonfile):
     return book + '_' + p + '.png'
 
 def main(pagefilename,args):
-
     print("processing "+pagefilename)
     imgfilename=GetImgFilename(pagefilename)
 
@@ -52,7 +51,7 @@ def main(pagefilename,args):
     #local binarization
     warped = cv2.adaptiveThreshold(warped, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 15, 4)
     #filling small holes on vertical lines
-    kernel = np.ones([11, 1], np.uint8)
+    kernel = np.ones([7, 1], np.uint8)
     warped = cv2.morphologyEx(warped, cv2.MORPH_CLOSE, kernel)
 
     # CCL

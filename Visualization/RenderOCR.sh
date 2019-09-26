@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
-ImgPath=${ImgPath:-'../../personnel-records/1956/scans/parsed/pr1956_f138_0.tif'}
+ImgPath=${ImgPath:-'../../raw_data/personnel-records/1956/scans/parsed/'}
 
-RectDir=${JsonDir:-'../../personnel-records/1956/seg/col_rect/pr1956_f0138_0_1/'}
+RectDir=${JsonDir:-'../../results/personnel-records/1956/seg/col_rect/'}
 
-GCVDir=${GCVDir:-'../../personnel-records/1956/ocr/gcv_output/pr1956_f0138_0_1/'}
+GCVDir=${GCVDir:-'../../results/personnel-records/1956/ocr/gcv_output/'}
 
-OutputDir=${OutputDir:-'../../personnel-records/1956/visualization'}
+OutputDir=${OutputDir:-'../../results/personnel-records/1956/visualization'}
 
 read -p "Do you want to remove previous output in $OutputDir? (y/n) " -n 1 -r
 echo -e "\n"

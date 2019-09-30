@@ -37,9 +37,6 @@ def main(pagefilename,args):
 
     with open(os.path.join(args.pagedir,pagefilename)) as file:
         rect = json.load(file)
-        #manual fix page_rect
-        if "pr1954_p0951_0.json" in pagefilename:
-            rect[0][0]=rect[0][0]*0.8
 
     warped, M = Rect.CropRect(img, rect)
 
@@ -51,7 +48,7 @@ def main(pagefilename,args):
     #local binarization
     warped = cv2.adaptiveThreshold(warped, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 15, 4)
     #filling small holes on vertical lines
-    kernel = np.ones([7, 1], np.uint8)
+    kernel = np.ones([7,1], np.uint8)
     warped = cv2.morphologyEx(warped, cv2.MORPH_CLOSE, kernel)
 
     # CCL

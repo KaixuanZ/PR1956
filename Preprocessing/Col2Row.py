@@ -5,14 +5,49 @@ from scipy import signal
 import os
 from joblib import Parallel, delayed
 import argparse
-import multiprocessing
 import sys
 sys.path.append('../')
 import Rect
 
 #input original scanned img and column bbox, output row bbox
 
-class WarpedImg(object):
+class Page(object):
+    def __init__(self,imgpath,colfilename):
+        self.columns = []
+        self.pagefilename = colfilename.split('/')[-1]
+        self.img_b = Binarization(cv2.imread(imgpath,0))
+
+    def AddColumn(self,colRect):
+        col_b, M = Rect.CropRect(self.img_b, colRect)
+        col = Column(col_b, M, colRect)
+        self.columns.append(col)
+
+    def ColsToRows(self):
+        for col in self.columns:
+            col.SegToRows()
+            col.SegLargeRows(self.img_b)
+            col.SegLargeRows(cv2.medianBlur(self.img_b, 5))
+
+    def SaveColumnRects(self,outputdir):
+        pass
+
+    def SaveRowRects(self,outputdir):
+        if not os.path.isdir(outputdir):
+            os.mkdir(outputdir)
+            print('creating directory ' + outputdir)
+
+        rowJsonName = self.pagefilename.split('.')[0] + '.json'
+        res,i={},0
+        for col in self.columns:
+            res[i]=col.rowRects
+            i+=1
+        with open(os.path.join(outputdir, rowJsonName), 'w') as outfile:
+            json.dump(res, outfile)
+
+        print('output rowRect to ' + os.path.join(outputdir, rowJsonName))
+
+
+class Column(object):
     def __init__(self, warpedImg_b, M, colRect, rowHeight=None):
         self.M = M  # transformation from the original img to this wapred img
         self.warpedImg_b = warpedImg_b  # used for initial row segmention
@@ -21,7 +56,7 @@ class WarpedImg(object):
         self.colRect = colRect
         self.rowHeights = []
 
-    def Seg2Rows(self, threshold=10):
+    def SegToRows(self, threshold=10):
         # threshold is for the initial segmentation of row images
         H, W = self.warpedImg_b.shape
         rowLeftIndex, rowRightIndex = [], []
@@ -103,8 +138,8 @@ class WarpedImg(object):
             rect[1][1] += 30
         rect[2] += theta
         warped_b, M = Rect.CropRect(img_b, rect)
-        largeRow = WarpedImg(warped_b, M, self.colRect, self.rowHeight)
-        largeRow.Seg2Rows()
+        largeRow = Column(warped_b, M, self.colRect, self.rowHeight)
+        largeRow.SegToRows()
         # move the center of rows so that they locate within the col
         if f:
             rot = (rowRect[2] - self.colRect[2]) % 90  # relative rotation of row to col (rowRect[2]=colRect[2]+rot)
@@ -146,18 +181,15 @@ class WarpedImg(object):
             else:
                 self.rowHeight = 50
 
-    def SaveRowJson(self, colJsonName, outputdir='tmp'):
+    def SaveRowRects(self, colJsonName, outputdir='tmp'):
         if not os.path.isdir(outputdir):
             os.mkdir(outputdir)
             print('creating directory ' + outputdir)
-        i=0
-        for rowRect in self.rowRects:
-            rowJsonName=colJsonName.split('.')[0]+'_'+str(i).zfill(3)+'.json'
-            with open(os.path.join(outputdir,rowJsonName), 'w') as outfile:
-                json.dump(rowRect, outfile)
-                if i%50==0:
-                    print('output rowRect to ' + os.path.join(outputdir,rowJsonName))
-            i+=1
+
+        rowJsonName=colJsonName.split('.')[0]+'.json'
+        with open(os.path.join(outputdir,rowJsonName), 'w') as outfile:
+            json.dump(self.rowRects, outfile)
+        print('output rowRect to ' + os.path.join(outputdir,rowJsonName))
 
 def GetRowHeight(rect):
     if rect[2]<-45:
@@ -166,33 +198,32 @@ def GetRowHeight(rect):
         return rect[1][1]
 
 def Binarization(img,patchSize=15,threshold=12):
-    img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    if len(img.shape)==3:
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     # local binarization
-    img_b = cv2.adaptiveThreshold(img_gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, patchSize, threshold)
+    img_b = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, patchSize, threshold)
     return img_b
 
 def GetImgFilename(jsonfile):
-    book, f, n , p ,c = jsonfile.split('.')[0].split('_')
-    f = f[0] + str(int(f[1:]))
-    return book + '_' + f + '_' + n + '.tif'
+    book, p, _ = jsonfile.split('.')[0].split('_')
+    p = p[0] + str(int(p[1:]))
+    return book + '_' + p + '.png'
 
-def main(coldir,imgdir,outputdir):
-    clean_names = lambda x: [i for i in x if i[0] != '.']
-    colRectJsons = sorted(clean_names(os.listdir(coldir)))
+def main(colRectJson,args):
+    print("processing "+colRectJson)
+    imgpath = os.path.join(args.imgdir,GetImgFilename(colRectJson))
 
-    imgpath = os.path.join(imgdir,GetImgFilename(colRectJsons[0]))
-    img = cv2.imread(imgpath)
-    img_b = Binarization(img)
+    page=Page(imgpath,colRectJson)
 
-    for colRectJson in colRectJsons:
-        with open(os.path.join(coldir,colRectJson)) as file:
-            colRect=json.load(file)
-        col_b, M = Rect.CropRect(img_b, colRect)
-        col = WarpedImg(col_b, M, colRect)
-        col.Seg2Rows()
-        col.SegLargeRows(img_b)
-        col.SegLargeRows(cv2.medianBlur(img_b, 5))
-        col.SaveRowJson(colRectJson, outputdir)
+    with open(os.path.join(args.coldir, colRectJson)) as file:
+        colRects = json.load(file)
+
+    for colRect in colRects:
+        page.AddColumn(colRect)
+
+    page.ColsToRows()
+
+    page.SaveRowRects(args.outputdir)
 
 if __name__ == '__main__':
     # construct the argument parse and parse the arguments
@@ -208,14 +239,9 @@ if __name__ == '__main__':
         print('creating directory ' + args.outputdir)
 
     clean_names = lambda x: [i for i in x if i[0] != '.']
-    coldir = os.listdir(args.coldir)
-    #coldir = coldir[130::]
-    coldir = sorted(clean_names(coldir))
+    colRectJsons = os.listdir(args.coldir)
 
-    outputdir = [os.path.join(args.outputdir, dir) for dir in coldir]
-    coldir = [os.path.join(args.coldir, dir) for dir in coldir]
-    imgdir = [args.imgdir] * len(coldir)
+    colRectJsons = sorted(clean_names(colRectJsons))
 
-    #Parallel(n_jobs=1)(map(delayed(main), coldir, imgdir, outputdir))
-    Parallel(n_jobs=multiprocessing.cpu_count())(map(delayed(main), coldir, imgdir, outputdir))
+    Parallel(n_jobs=-1)(map(delayed(main), colRectJsons,[args]*len(colRectJsons)))
 

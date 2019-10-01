@@ -4,7 +4,6 @@ import numpy as np
 import os
 from joblib import Parallel, delayed
 import argparse
-import multiprocessing
 #read image and detected bounding box, output the image with bounding box
 
 def ImgFile(jsonfile):
@@ -14,6 +13,8 @@ def ImgFile(jsonfile):
     return book + '_' + p + '.png'
 
 def main(jsonfile,jsondir,imgdir,outputdir):
+    #if "pr1954_p0111_1.json" not in jsonfile:
+    #    return 0
     print("processing ", jsonfile)
 
     file=os.path.join(jsondir,jsonfile)
@@ -23,11 +24,15 @@ def main(jsonfile,jsondir,imgdir,outputdir):
     img = cv2.pyrDown(cv2.pyrDown(img))
 
     with open(file) as rectjson:
-        rect = json.load(rectjson)
-    box = cv2.boxPoints(tuple(rect))
-    box = np.int0(box/scale)
-    cv2.drawContours(img, [box], 0, (0,0,255), 2)
-    #import pdb;pdb.set_trace()
+        dict = json.load(rectjson)
+    rects=[]
+    for key in dict.keys():
+        rects+=dict[key]
+    for rect in rects:
+        box = cv2.boxPoints(tuple(rect))
+        box = np.int0(box/scale)
+        cv2.drawContours(img, [box], 0, (0,0,255), 1)
+
     cv2.imwrite(os.path.join(outputdir,jsonfile.split('.')[0]+'.png'),img)
 
 if __name__ == '__main__':

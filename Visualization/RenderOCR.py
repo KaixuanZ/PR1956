@@ -45,9 +45,9 @@ def draw_boxes(image, boxes):
     return image
 
 def GetImgFilename(string):
-    book, f, p , _ = string.split('.')[0].split('_')
-    f = f[0] + str(int(f[1:]))
-    return book + '_' + f + '_' + p + '.png'
+    book, p , _ = string.split('.')[0].split('_')
+    p = p[0] + str(int(p[1:]))
+    return book + '_' + p + '.png'
 
 def get_document_boxes(ocr_file, feature):
     """Returns document bounds given an image."""
@@ -78,13 +78,18 @@ def get_document_boxes(ocr_file, feature):
     return boxes
 
 
-def render_doc_text(col_rect_dir, args):
-    image = cv2.imread(os.path.join(args.img_path,GetImgFilename(col_rect_dir)))
+def render_doc_text(col_rect, args):
+    #import pdb;pdb.set_trace()
+    image = cv2.imread(os.path.join(args.img_path,GetImgFilename(col_rect)))
+    col_rect_dir=col_rect.split('.')[0]
     gcv_outputs=sorted(clean_names(os.listdir(os.path.join(args.gcv_dir,col_rect_dir))))
+
+    with open(os.path.join(args.rect_dir, col_rect)) as rectjson:
+        col_rects = json.load(rectjson)
+
     for i in range(len(gcv_outputs)):
-        with open(os.path.join(args.rect_dir,col_rect_dir,gcv_outputs[i])) as rectjson:
-            rect = json.load(rectjson)
-        warped,_=Rect.CropRect(image,rect)
+
+        warped,_=Rect.CropRect(image,col_rects[i])
 
         boxes = get_document_boxes(os.path.join(args.gcv_dir,col_rect_dir,gcv_outputs[i]), FeatureType.SYMBOL)
         draw_boxes(warped, boxes)
@@ -110,6 +115,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     clean_names = lambda x: [i for i in x if i[0] != '.']
-    col_rect_dirs=sorted(clean_names(os.listdir(args.rect_dir)))
+    col_rects=sorted(clean_names(os.listdir(args.rect_dir)))[::500]
 
-    Parallel(n_jobs=1)(map(delayed(render_doc_text), col_rect_dirs, [args] * len(col_rect_dirs)))
+    Parallel(n_jobs=1)(map(delayed(render_doc_text), col_rects, [args] * len(col_rects)))

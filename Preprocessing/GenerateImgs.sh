@@ -20,7 +20,6 @@ fi
 
 
 for section in "${Sections[@]}"; do
-    echo "Processing $ImgPath$section"
 
     ImgPath_section="$ImgPath$section"
     OutputPath_section="$OutputPath$section/${type}_img"
@@ -32,7 +31,7 @@ for section in "${Sections[@]}"; do
 
         rm $OutputPath_section --recursive
     fi
-
-    #python3 GenerateImgs.py --imgdir=$ImgPath_section --rectdir=$RectPath_section --outputdir=$OutputPath_section #2>&1 | tee log_Row.txt
+    echo "Processing $ImgPath_section"
+    python3 GenerateImgs.py --imgdir=$ImgPath_section --rectdir=$RectPath_section --outputdir=$OutputPath_section #2>&1 | tee log_Row.txt
 done
 

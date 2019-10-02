@@ -13,7 +13,9 @@ def GetImgFilename(jsonfile):
     p = p[0] + str(int(p[1:]))
     return book + '_' + p + '.png'
 
-def main(rect_json, args,row=True):
+def main(rect_json, args):
+    if 'row' in args.rectdir:
+        row=True
     print('processing ' + rect_json)
 
     imgpath = os.path.join(args.imgdir, GetImgFilename(rect_json))

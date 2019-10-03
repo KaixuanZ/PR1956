@@ -80,7 +80,7 @@ class DataGenerator(keras.utils.Sequence):
 
 def SaveIdNameMap(target_names,output_path):
     id_name_map = dict(zip(range(len(target_names)), target_names))
-    outputfile=output_path+'IdNameMap.json'
+    outputfile=os.path.join(output_path,'labeled_data','IdNameMap.json')
     with open(outputfile, 'w') as outfile:
         json.dump(id_name_map, outfile)
     print('writing id-name map to '+outputfile)
@@ -147,7 +147,7 @@ def main(trainset,weight_path,output_path):
 
     reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor='val_acc', factor=0.0050, patience=6, mode='auto', cooldown=0, min_lr=0)
 
-    model.fit_generator(train_generator, validation_data=val_generator, epochs=40, callbacks=[reduce_lr,mc])
+    model.fit_generator(train_generator, validation_data=val_generator, epochs=30, callbacks=[reduce_lr,mc])
 
 
 if __name__ == '__main__':
@@ -162,19 +162,3 @@ if __name__ == '__main__':
 
     os.environ["CUDA_VISIBLE_DEVICES"] = args.GPU_num
     main(args.trainset,args.weight_path,args.output_path)
-'''
-# ## Test model performance
-
-
-res = model.predict(X[:100, ...,None])
-
-
-# In[ ]:
-
-
-k = res.argmax(axis=1)
-for i in range(40):
-    plt.imshow(X[i,...])
-    plt.title(target_names[k[i]])
-    plt.show()
-'''

@@ -13,24 +13,23 @@ from keras import Model
 def LoadModel(height,width,weightfile):
     # model for testing
     base_model = keras.applications.mobilenet.MobileNet(input_shape=(height, width, 1), alpha=1.0,
-                                                        depth_multiplier=1, dropout=1e-3, include_top=True,
+                                                        depth_multiplier=1, dropout=1e-2, include_top=True,
                                                         weights=None, classes=7)
     with tf.name_scope("output"):
         x = base_model.get_layer("conv_pw_13_relu").output
         x = GlobalAveragePooling2D(data_format=None)(x)
         x = Dropout(0.5)(x)
-        predictions = Dense(6, activation='softmax')(x)
+        predictions = Dense(5, activation='softmax')(x)
 
     model = Model(inputs=base_model.input, outputs=predictions)
     model.load_weights(weightfile)
     return model
 
 def ZeroPadding(filename):
-    #for pr1956
-    fname,fformat=filename.split('.')
-    fname0,fname1,fname2,fname3,fname4,fname5=fname.split('_')
-    filename=fname0+'_'+fname1+'_'+fname2+'_'+fname3+'_'+fname4+'_'+fname5.zfill(3)+'.'+fformat
-    return filename
+    #for pr1954
+    fname , _ =filename.split('.')
+    _ , _ , _ , col , row = fname.split('_')
+    return col,row.zfill(3)
 
 def main(inputpath,outputpath,weightfile):
     height,width = 80,800
@@ -41,25 +40,24 @@ def main(inputpath,outputpath,weightfile):
 
     model=LoadModel(height,width,weightfile)
     count=0
-    for outputdir in clean_names(os.listdir(inputpath)):
-        print("processing image in "+outputdir)
-        if not os.path.isdir(os.path.join(outputpath,outputdir)):
-            os.mkdir(os.path.join(outputpath,outputdir))
-            print('creating directory ' + os.path.join(outputpath,outputdir))
-        for img in clean_names(os.listdir(os.path.join(inputpath,outputdir))):
-            data= cv2.imread(os.path.join(inputpath,outputdir,img), cv2.IMREAD_GRAYSCALE)
+    for outputfile in clean_names(os.listdir(inputpath)):
+        print("processing image in "+outputfile)
+        res={}
+        for img in sorted(clean_names(os.listdir(os.path.join(inputpath,outputfile)))):
+            data= cv2.imread(os.path.join(inputpath,outputfile,img), cv2.IMREAD_GRAYSCALE)
             data= cv2.resize(data, (width, height))
-            res = model.predict(data[None,...,None])   #input should have four dimension, here:[N=1,H,W,C=1]
-            res = res.tolist()[0]
-            res = dict(zip(range(len(res)), res))
-            img=ZeroPadding(img)    #necessary for dataset without zeropadding
+            prob = model.predict(data[None,...,None])   #input should have four dimension, here:[N=1,H,W,C=1]
+            prob = prob.tolist()[0]
+            prob = dict(zip(range(len(prob)), prob))
+            col,row=ZeroPadding(img)    #necessary for dataset without zeropadding
 
+            if col not in res.keys():
+                res[col]={}
+            res[col][row]=prob
 
-            with open(os.path.join(outputpath,outputdir,img.split('.')[0]+'.json'), 'w') as outfile:
-                json.dump(res, outfile)
-                count+=1
-            if count%10==0:
-                print('writing results to ' + os.path.join(outputpath,outputdir,img.split('.')[0]+'.json'))
+        with open(os.path.join(outputpath,outputfile+'.json'), 'w') as outfile:
+            json.dump(res, outfile)
+        print('writing results to ' + os.path.join(outputpath,outputfile+'.json'))
 
 
 if __name__ == '__main__':

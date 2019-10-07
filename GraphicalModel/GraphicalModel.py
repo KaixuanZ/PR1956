@@ -5,6 +5,7 @@ import csv
 import Viterbi
 import numpy as np
 import copy
+from joblib import Parallel, delayed
 
 DEFAULT,MANUAL,AUTO=0,1,2
 
@@ -18,8 +19,8 @@ class Graph(object):
 
     def AddNodes(self,Nodes):
         Nodes=np.array(Nodes)
-        if Nodes[1]>0.9:    #give more confidence on company name
-            Nodes[1]*=5
+        #if Nodes[1]>0.8:    #give more confidence on company name
+        #    Nodes[1]*=5
         Nodes/=np.sum(Nodes)        #check the sum of prob should be 1
         self.Nodes.append(Nodes.tolist())
 
@@ -87,14 +88,13 @@ def GetGroundTruth(path,RemoveBlank=False):
 
 def EstTransMat(labelfile, id2name_label, id2name_cls, method):
     #transition matrix labeled by human knowledge. array[i][j]=1 : transition from class i to class j is possible
-    # matrix for teikoku 1957
-    Dim=6
-    manual = [[1, 0, 0, 0, 0, 1],  # 0  address
-             [1, 1, 0, 0, 0, 0],  # 1   company
-             [0, 0, 1, 1, 0, 1],  # 2   personnel
-             [0, 0, 0, 1, 0, 1],  # 3   table
-             [0, 1, 1, 1, 1, 1],  # 4   value
-             [0, 1, 1, 1, 1, 1], ]  # 5 variable
+    # matrix for PR1954
+    Dim = 5
+    manual = [[1, 0, 0, 1, 1],  # 0  address
+              [1, 1, 0, 0, 0],  # 1   company
+              [0, 1, 1, 0, 0],  # 2   personnel
+              [0, 1, 1, 1, 1],  # 3   variable
+              [0, 1, 1, 1, 1], ]  # 4 value
     if method==DEFAULT:
         return [[1/Dim]*Dim]*Dim
     elif method==MANUAL:
@@ -111,33 +111,36 @@ def EstTransMat(labelfile, id2name_label, id2name_cls, method):
     print("input error for function EstTransMat()")
     return None
 
-def main(inputpath,outputpath,labelfile,id2name_label,id2name_cls):
-    with open(id2name_cls) as jsonfile:
+def main(file,args):
+    print("processing "+file)
+    with open(args.id2name_cls) as jsonfile:
         Id2Name_cls = json.load(jsonfile)
-
-    clean_names = lambda x: [i for i in x if i[0] != '.']
 
     graph = Graph()
     # get values on edges
-    graph.SetEdges(EstTransMat(labelfile, id2name_label, id2name_cls, MANUAL))
+    graph.SetEdges(EstTransMat(args.trainset, args.id2name_label, args.id2name_cls, MANUAL))
 
-    for dir in sorted(clean_names(os.listdir(inputpath))):  #one dir includes prob for one page
-        print("processing "+dir)
-        graph.Nodes=[]
-        graph.cls=[]
-        cls={}
-        for jsonfile in sorted(clean_names(os.listdir(os.path.join(inputpath,dir)))):
-            with open(os.path.join(inputpath,dir,jsonfile)) as inputfile:
-                prob = json.load(inputfile)
-                # get values on nodes
-                graph.AddNodes([*prob.values()])
-        #output cls
-        graph.Decode()
-        cls['id'] =graph.cls
-        cls['id'] = [int(i) for i in cls['id']]
-        cls['name'] = [Id2Name_cls[str(i)] for i in cls['id']]
-        with open(os.path.join(outputpath, dir+'.json'), 'w') as outputfile:
-            json.dump(cls, outputfile)
+
+
+    with open(os.path.join(args.inputpath, file)) as jsonfile:
+        probs = json.load(jsonfile)
+
+    graph.Nodes=[]
+    graph.cls=[]
+    cls={}
+
+    for col_num in sorted(probs.keys()):
+        for row_num in sorted(probs[col_num].keys()):
+            # get values on nodes
+            graph.AddNodes([*probs[col_num][row_num].values()])
+
+    #output cls
+    graph.Decode()
+    cls['id'] =graph.cls
+    cls['id'] = [int(i) for i in cls['id']]
+    cls['name'] = [Id2Name_cls[str(i)] for i in cls['id']]
+    with open(os.path.join(args.outputpath, file), 'w') as outputfile:
+        json.dump(cls, outputfile)
 
 
     #import pdb;pdb.set_trace()
@@ -152,5 +155,8 @@ if __name__ == '__main__':
     parser.add_argument( '--id2name_cls', type=str)
 
     args = parser.parse_args()
+    clean_names = lambda x: [i for i in x if i[0] != '.']
+    files=sorted(clean_names(os.listdir(args.inputpath)))
 
-    main(args.inputpath,args.outputpath,args.trainset,args.id2name_label,args.id2name_cls)
+    Parallel(n_jobs=-1)(map(delayed(main), files, [args] * len(files)))
+    #main(args.inputpath,args.outputpath,args.trainset,args.id2name_label,args.id2name_cls)

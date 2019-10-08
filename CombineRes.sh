@@ -1,24 +1,51 @@
 #!/usr/bin/env bash
 
-ImgPath=${ImgPath:-'../personnel-records/1956/scans/parsed'}
+#declare -a Sections=("firm" "bank" "credit_union" "official_office" "supplement")
+declare -a Sections=("supplement")
 
-ColRectPath=${ColRectPath:-'../personnel-records/1956/seg/col_rect'}
+ImgPath=${ImgPath:-'../raw_data/personnel-records/1954/scans/'}
 
-RowRectPath=${RowRectPath:-'../personnel-records/1956/seg/row_rect'}
+ColRectPath=${ColRectPath:-'../results/personnel-records/1954/seg/'}
 
-RowClsPath=${RowClsPath:-'../personnel-records/1956/cls/'}
+RowRectPath=${RowRectPath:-'../results/personnel-records/1954/seg/'}
 
-OCRPath=${OCRPath:-'../personnel-records/1956/ocr/gcv_output'}
+RowClsPath=${RowClsPath:-'../results/personnel-records/1954/cls/'}
 
-OutputPath=${OutputPath:-'../personnel-records/1956/res/'}
+OCRPath=${OCRPath:-'../results/personnel-records/1954/ocr/gcv_output/'}
 
-read -p "Do you want to remove previous output in $OutputPath? (y/n) " -n 1 -r
+OutputPath=${OutputPath:-'../results/personnel-records/1954/res/csv/'}
+
+read -p "Do you want to remove previous output of probability in $OutputPath? (y/n) " -n 1 -r
 echo -e "\n"
+DELETE="N"
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
-    echo "removing $OutputPath"
-
-    rm $OutputPath --recursive
+    DELETE='Y'
 fi
 
-python3 CombineAllResults.py --img_dir=$ImgPath --col_rect_dir=$ColRectPath --row_rect_dir=$RowRectPath --row_cls_dir=$RowClsPath --OCR_dir=$OCRPath --output_dir=$OutputPath
+
+for section in "${Sections[@]}"; do
+
+    ImgPath_section="$ImgPath$section"
+
+    ColRectPath_section="$ColRectPath$section/col_rect"
+    RowRectPath_section="$RowRectPath$section/row_rect"
+    RowClsPath_section="$RowClsPath$section"
+    OCRPath_section="$OCRPath$section"
+    OutputPath_section="$OutputPath$section"
+
+
+    if test "$DELETE" == 'Y'
+    then
+        echo "removing $OutputPath_section"
+
+        rm $OutputPath_section --recursive
+    fi
+
+    mkdir $OutputPath_section
+
+    python3 CombineAllResults.py --img_dir=$ImgPath_section --col_rect_dir=$ColRectPath_section \
+                                    --row_rect_dir=$RowRectPath_section --row_cls_dir=$RowClsPath_section \
+                                    --OCR_dir=$OCRPath_section --output_dir=$OutputPath_section
+
+done

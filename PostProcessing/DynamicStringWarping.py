@@ -46,7 +46,6 @@ def ReadCsvCls(filename):
             cls+=row[0].split(',')[7][0]
     return cls[1:]
 
-
 #filename='test.csv'
 filename='test_missing_company.csv'
 #'cavptv' or 'cavpxtv' x stands for variable name (accounting period) only one row

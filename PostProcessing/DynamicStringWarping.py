@@ -5,38 +5,38 @@ def DSW(source,target):
     '''
     :param source
     :param target
-    :return: [loss,mapping]
-            loss represents the difference between source and target (block structure)
-            mapping means how to map target to source and get minimum loss
+    :return: [cost,mapping]
+            cost represents the difference between source and target (block structure)
+            mapping means how to map target to source with minimum cost
     '''
-    dtw_table = np.zeros([len(target) + 1, len(source) + 1])
+    dsw_table = np.zeros([len(target) + 1, len(source) + 1])
 
     # initialization
-    dtw_table[0, :] = np.array([i for i in range(dtw_table.shape[1])])
-    dtw_table[:, 0] = np.array([i for i in range(dtw_table.shape[0])])
+    dsw_table[0, :] = np.array([i for i in range(dsw_table.shape[1])])
+    dsw_table[:, 0] = np.array([i for i in range(dsw_table.shape[0])])
 
     # forward update
-    for x in range(1, dtw_table.shape[0]):
-        for y in range(1, dtw_table.shape[1]):
+    for x in range(1, dsw_table.shape[0]):
+        for y in range(1, dsw_table.shape[1]):
             if target[x - 1] == source[y - 1]:
-                dtw_table[x, y] = min(dtw_table[x - 1, y - 1], dtw_table[x, y - 1])
+                dsw_table[x, y] = min(dsw_table[x - 1, y - 1], dsw_table[x, y - 1])
             else:
-                dtw_table[x, y] = min(dtw_table[x - 1, y - 1], dtw_table[x, y - 1]) + 1
+                dsw_table[x, y] = min(dsw_table[x - 1, y - 1], dsw_table[x, y - 1]) + 1
 
-    index=np.argmin(dtw_table[:,-1])
+    index=np.argmin(dsw_table[:,-1])
 
-    # get path
+    # retrieve path
     cls,x,y='',index,len(source)
 
     for i in range(0,len(source)):
         cls=target[x-1]+cls
         y-=1
-        if dtw_table[x,y]>dtw_table[x-1,y]:
+        if dsw_table[x,y]>dsw_table[x-1,y]:
             x-=1
 
 
-    #check if dtw_table[-1,-1] is the largest in dtw_table[:,-1], o.w. it means the structure of this company hasn't been appeared
-    return dtw_table[index,-1],cls
+    #check if dsw_table[-1,-1] is the largest in dsw_table[:,-1], o.w. it means the structure of this company hasn't been appeared
+    return dsw_table[index,-1],cls
 
 def ReadCsvCls(filename):
     with open(filename, newline='') as csvfile:

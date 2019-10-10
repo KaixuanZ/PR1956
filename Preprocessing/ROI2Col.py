@@ -18,6 +18,11 @@ def GetImgFilename(jsonfile):
     return book + '_' + p  + '.png'
 
 def ColIndex(img_b,ColWHRatio=2/15):
+    '''
+    :param img_b: binarized ROI image
+    :param ColWHRatio: estimated width and height ratio for column
+    :return: col segmentation point
+    '''
     theta = range(-90, 271, 24)
     H,W=img_b.shape
 
@@ -40,6 +45,14 @@ def ColIndex(img_b,ColWHRatio=2/15):
     return index
 
 def main(ROIfilename,imgdir,ROIdir,outputdir):
+    '''
+    :param ROIfilename:
+    :param imgdir:
+    :param ROIdir:
+    :param outputdir:
+    :return: rect(s) of columns
+    seperate ROI into several columns
+    '''
     threshold1=10  #threshold for binarization
     threshold2=190 #threshold for deciding if the last col has content
     print("processing "+ROIfilename)
@@ -56,6 +69,8 @@ def main(ROIfilename,imgdir,ROIdir,outputdir):
     warped_b = cv2.adaptiveThreshold(warped, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 15, threshold1)
 
     H,W=warped_b.shape
+
+    # col index to segment the ROI
     colIndex = ColIndex(warped_b)
     col_rects=[]
     for i in range(len(colIndex) - 1):

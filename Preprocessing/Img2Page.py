@@ -16,6 +16,13 @@ def MahalonobisDistance(x, mean, cov):
 
 
 def SegByMahalonobisDistance(matrix, mean, cov, thr):
+    '''
+    :param matrix:  data
+    :param mean:    mean vector of a gaussian distribution
+    :param cov:     covariance matrix of a gaussian distribution
+    :param thr:     threshold for segmentation
+    :return:        mask of segmentation results
+    '''
     # fast implementation
     cov_inv = np.linalg.inv(cov)
     mat1 = matrix[:, :, 0] - mean[0]
@@ -25,6 +32,10 @@ def SegByMahalonobisDistance(matrix, mean, cov, thr):
     return dis < thr ** 2  # mask for segmentation
 
 def TrainGaussian(file):
+    '''
+    :param file:    filepath of the training data
+    :return:        estimated mean vector and covariance matrix
+    '''
     img = cv2.imread(file)
     img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     img_hsv = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2HSV)
@@ -39,12 +50,23 @@ def TrainGaussian(file):
 
 
 def Zeropadding(filename):
+    '''
+    :param filename:    original file name
+    :return:            zeropadding on the page number
+    '''
     filename = filename.split('.')[0]
     book, p = filename.split('_')
     p = p[0] + p[1:].zfill(4)   #zeropadding
     return book + '_' + p
 
 def OutputRect(outputdir,filename,rect,splitPage=False):
+    '''
+    :param outputdir:   output dir
+    :param filename:    input page file name
+    :param rect:        detected rect of page
+    :param splitPage:   split the detect page into two smaller pages if splitPage=True
+    :return:            saved rect(s) of page(s)
+    '''
     if splitPage:
         #split the rect to two smaller rects (two pages)
         if rect[2] < -45:
@@ -113,7 +135,6 @@ def main(filename,args):
             size2=np.sum((labels==i).astype(int))
             label2=i
     # fit a rect
-
     _, cnts, _ = cv2.findContours((labels == label1).astype(np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     rect0 = cv2.minAreaRect(cnts[0] * k)
 

@@ -30,6 +30,10 @@ def GetImgFilename(jsonfile):
     return book + '_' + p + '.png'
 
 def main(pagefilename,args):
+    '''
+    :return: rect(s) of detected ROI
+    estimate the ROI by finding the vertical lines
+    '''
     print("processing "+pagefilename)
     imgfilename=GetImgFilename(pagefilename)
 
@@ -54,7 +58,7 @@ def main(pagefilename,args):
     # CCL
     ret, labels = cv2.connectedComponents(warped)  # CCL
     features = {}
-
+    #find candidate of the four vertical lines
     for i in range(1, ret + 1):  # O(n^3), that's why we need downsampling
         if labels[labels == i].shape[0] > warped.shape[0]:  # remove words (small CCL regions)
             HRange, WRange = np.where(labels == i)

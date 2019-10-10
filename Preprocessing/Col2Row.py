@@ -32,6 +32,10 @@ class Page(object):
         pass
 
     def SaveRowRects(self,outputdir):
+        '''
+        :param outputdir
+        :return: one json files which contains row rects in this page {'0':[],'1':[],...}
+        '''
         if not os.path.isdir(outputdir):
             os.mkdir(outputdir)
             print('creating directory ' + outputdir)
@@ -49,14 +53,24 @@ class Page(object):
 
 class Column(object):
     def __init__(self, warpedImg_b, M, colRect, rowHeight=None):
+        '''
+        :param warpedImg_b: cropped from binarized original image
+        :param M:           transformation from the original img to this wapred img
+        :param colRect:     rect of this warped image in original image
+        :param rowHeight:   rowHeight for estimating large row
+        '''
         self.M = M  # transformation from the original img to this wapred img
         self.warpedImg_b = warpedImg_b  # used for initial row segmention
-        self.rowRects = []  # rect of each row images in original img
+        self.rowRects = []      # rect of each row images in original img
         self.rowHeight = rowHeight
         self.colRect = colRect
-        self.rowHeights = []
+        self.rowHeights = []    #[rowheight] for all the segmented rows
 
     def SegToRows(self, threshold=10):
+        '''
+        :param threshold
+        :return: segmented [row_rects]
+        '''
         # threshold is for the initial segmentation of row images
         H, W = self.warpedImg_b.shape
         rowLeftIndex, rowRightIndex = [], []
@@ -81,6 +95,9 @@ class Column(object):
             self.SetRowHeight()
 
     def CombineSmallRowRects(self):
+        '''
+        combine very small rows (rowHeight very small) with closest row
+        '''
         for i in range(len(self.rowHeights) - 1, 0 - 1, -1):
             if self.rowHeights[i] < self.rowHeight * 0.8 and len(self.rowHeights)>=2:  # small row: combine it with the closest row
                 if i==0:
@@ -110,6 +127,12 @@ class Column(object):
             self.rowHeights.pop(j)
 
     def SegLargeRows(self, img_b, thetas=list(range(-4, 5))):
+        '''
+        :param img_b: binarized original image
+        :param thetas: [rotation angle], define the search space
+        :return: segmented [row_rect]
+        seg rows with large rowHeight
+        '''
         adpRowHeights=signal.medfilt(self.rowHeights, 7)
         for i in range(len(self.rowRects) - 1, -1, -1):
             if GetRowHeight(self.rowRects[i]) >= 2 * min(max(adpRowHeights[i], 0.6*self.rowHeight),1.6*self.rowHeight):
@@ -131,6 +154,13 @@ class Column(object):
 
 
     def SegLargeRow(self, img_b, rowRect, theta, f=0):
+        '''
+        :param img_b:
+        :param rowRect:
+        :param theta: rotation angle
+        :param f: flag
+        :return: segmented [row_rect]
+        '''
         rect = [list(rowRect[0]), list(rowRect[1]), rowRect[2]]
         if rect[2]<-45:
             rect[1][0] += 30
@@ -166,6 +196,11 @@ class Column(object):
                 rowRightIndex.pop(0)
 
     def GetRowRects(self, rowLeftIndex, rowRightIndex):
+        '''
+        :param rowLeftIndex: a list of start index of rows
+        :param rowRightIndex: a list of end index of rows
+        :return: [row rect] computed from rowLeftIndex, rowRightIndex
+        '''
         H, W = self.warpedImg_b.shape
         for i in range(len(rowLeftIndex)):
             # four pts of the rect
@@ -175,6 +210,9 @@ class Column(object):
             self.rowHeights.append(GetRowHeight(rect))
 
     def SetRowHeight(self):
+        '''
+        :return: self.rowHeight, a threshold
+        '''
         if self.rowHeight is None:
             if len(self.rowHeights)>5:
                 self.rowHeight = np.percentile(self.rowHeights, 50)  # adaptive estimation of row width

@@ -15,6 +15,15 @@ clean_names = lambda x: [i for i in x if i[0] != '.']
 
 class Page(object):
     def __init__(self,img=None,page_filename=None,ocr_jsonfiles=None,col_rects=None,row_rects=None,cls=None):
+        '''
+        :param img:             image of this page
+        :param page_filename:   filename of img
+        :param ocr_jsonfiles:   a list of path of OCR output [ocr_jsonfile]
+        :param col_rects:       a list of col_rect in this page [col_rect]
+        :param row_rects:       a dict of row_rect in this page {'col_num':[row_rect]}
+        :param cls:             a list of classification of row images [cls]
+        each rect is a list contrains five parameters [[x,y],[H,W],theta]
+        '''
         self.img=img
         self.cols=[]
         self.ocr_jsonfiles=ocr_jsonfiles
@@ -38,11 +47,13 @@ class Page(object):
             self.cols[-1].SetRows()
 
     def SaveToCsv(self,outputpath):
+        #save information of this page to one csv file
         df=self.ToDataFrame()
         df.to_csv(outputpath)
         print("saving output to " + outputpath)
 
     def ToDataFrame(self):
+        #reshape inforamtion of this page to dataframe
         label=['book', 'page', 'subpage']
         val=[self.page_index['book'],self.page_index['page'],self.page_index['subpage']]
         df=[]
@@ -51,7 +62,14 @@ class Page(object):
         return pd.concat(df)
 
 class Col(object):
-    def __init__(self,ocr_jsonfile,col_M=None,row_rects=None,cls=None,col_index=None):
+    def __init__(self,ocr_jsonfile=None,col_M=None,row_rects=None,cls=None,col_index=None):
+        '''
+        :param ocr_jsonfile:    path of OCR output
+        :param col_M:           transformation from page to col
+        :param row_rects:       a list of row_rect in this column [row_rect]
+        :param cls:             a dict of cls in this column [cls]
+        :param col_index:       index of this column in page
+        '''
         self.ocr_jsonfile=ocr_jsonfile
         self.rows=[]
         self.row_rects=row_rects
@@ -67,6 +85,10 @@ class Col(object):
         self.AssignDocumentWordsToRow()
 
     def AssignDocumentWordsToRow(self):
+        '''
+        assign OCR output to coorespondent row
+        :return: self.rows with OCR output (self.rows.words, self.rows.AOI)
+        '''
         with open(self.ocr_jsonfile) as json_file:
             data = json.load(json_file)
             parsed = image_annotator_pb2.AnnotateImageResponse()
@@ -81,15 +103,26 @@ class Col(object):
                         assign_document_word_to_row(word, self.rows)
 
     def ToDataFrame(self,val,label):
+        '''
+        :param val:     values of correspondent labels from page level
+        :param label:   labels come from page level
+        :return:        a dataframe which contains information of this column
+        '''
+
         label_col=label+['col']
         val_col=val+[self.col_index]
         df=[]
         for row in self.rows:
-            df.append(row.ToDF(val_col,label_col))
+            df.append(row.ToDataFrame(val_col,label_col))
         return pd.concat(df)
 
 class Row(object):
     def __init__(self, row_rect=None ,cls=None, row_index=None):
+        '''
+        :param row_rect:    row_rect of this row
+        :param cls:         cls of this row
+        :param row_index:   index of this row in column
+        '''
         self.row_bbox = None
         self.row_rect = row_rect
         if row_rect:
@@ -108,7 +141,12 @@ class Row(object):
         dict['row_index']=self.row_index
         return dict
 
-    def ToDF(self,val,label):
+    def ToDataFrame(self,val,label):
+        '''
+        :param val:     values of correspondent labels from column level
+        :param label:   labels come from column level
+        :return:        a dataframe which contains information of this row
+        '''
         data = []
         label_row = label+['row', 'cls', 'row_bbox']
         val_row = val+ [self.row_index,self.cls,self.row_bbox]
@@ -144,6 +182,12 @@ class Row(object):
         return df
 
 def assign_document_word_to_row(word, rows):
+    '''
+    assign word to nearest row (L2 distance)
+    :param word: a word returned by Google Cloud Vision
+    :param rows: a list of rows in one column
+    :return: rows with information of the input word
+    '''
     areas,dists = [],[]
     box = np.array([[word.bounding_box.vertices[0].x, word.bounding_box.vertices[0].y],
                     [word.bounding_box.vertices[1].x, word.bounding_box.vertices[1].y],
@@ -165,6 +209,11 @@ def assign_document_word_to_row(word, rows):
     rows[index].AOIs.append(max_area / word_rect[1][0] / word_rect[1][1])
 
 def main(page_index, args):
+    '''
+    :param page_index:  page to be processed
+    :param args:
+    :return:            an object page
+    '''
     print("processing "+page_index)
 
     #read in image

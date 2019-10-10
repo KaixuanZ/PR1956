@@ -48,6 +48,12 @@ class Graph(object):
         return self.cls
 
 def GetMappingDict(id2name_label, id2name_cls, f=0):    # f=0: cls2GT ; f=1: GT2cls
+    '''
+    :param id2name_label:   num <==> class name (mapping when we label the data)
+    :param id2name_cls:     num <==> class name (mappping in neural net classification)
+    :param f:
+    :return:
+    '''
     with open(id2name_cls) as jsonfile:
         Id2Name_cls = json.load(jsonfile)
     #print(Id2Name_cls)
@@ -69,6 +75,11 @@ def GetMappingDict(id2name_label, id2name_cls, f=0):    # f=0: cls2GT ; f=1: GT2
     return Dict
 
 def GetGroundTruth(path,RemoveBlank=False):
+    '''
+    :param path:  path of labeled data
+    :param RemoveBlank: not used here
+    :return: labeled data
+    '''
     with open(path) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
         line_count = 0
@@ -93,8 +104,8 @@ def EstTransMat(labelfile, id2name_label, id2name_cls, method):
     manual = [[1, 0, 0, 1, 1],  # 0  address
               [1, 1, 0, 0, 0],  # 1   company
               [0, 1, 1, 0, 0],  # 2   personnel
-              [0, 1, 1, 1, 1],  # 3   variable
-              [0, 1, 1, 1, 1], ]  # 4 value
+              [0, 0, 1, 1, 1],  # 3   variable
+              [0, 0, 1, 1, 1], ]  # 4 value
     if method==DEFAULT:
         return [[1/Dim]*Dim]*Dim
     elif method==MANUAL:
@@ -135,7 +146,8 @@ def main(file,args):
             graph.AddNodes([*probs[col_num][row_num].values()])
 
     #output cls
-    graph.Decode()
+    #graph.Decode()
+    graph.CNNClassification()
     cls['id'] =graph.cls
     cls['id'] = [int(i) for i in cls['id']]
     cls['name'] = [Id2Name_cls[str(i)] for i in cls['id']]
@@ -157,6 +169,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
     clean_names = lambda x: [i for i in x if i[0] != '.']
     files=sorted(clean_names(os.listdir(args.inputpath)))
+    if not os.path.isdir(args.outputpath):
+        os.mkdir(args.outputpath)
+        print('creating directory ' + args.outputpath)
 
     Parallel(n_jobs=-1)(map(delayed(main), files, [args] * len(files)))
     #main(args.inputpath,args.outputpath,args.trainset,args.id2name_label,args.id2name_cls)

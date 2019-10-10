@@ -1,11 +1,9 @@
 import json
 import cv2
 import numpy as np
-from scipy import signal
 import os
 from joblib import Parallel, delayed
 import argparse
-import multiprocessing
 import sys
 sys.path.append('../')
 import Rect
@@ -18,17 +16,18 @@ def GetColHeight(rect):
         return rect[1][1]
 
 def Binarization(img,patchSize=15,threshold=12):
-    img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    if len(img.shape)==3:
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     # local binarization
-    img_b = cv2.adaptiveThreshold(img_gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, patchSize, threshold)
+    img_b = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, patchSize, threshold)
     return img_b
 
 def GetImgFilename(jsonfile):
-    book, f, n , p ,c = jsonfile.split('.')[0].split('_')
-    f = f[0] + str(int(f[1:]))
-    return book + '_' + f + '_' + n + '.tif'
+    book, p, _ = jsonfile.split('.')[0].split('_')
+    p = p[0] + str(int(p[1:]))
+    return book + '_' + p  + '.png'
 
-def RemoveMinistry(img,colRects,colJsonNames):
+def RemoveMinistry(img,colRects):
     rect=Rect.CombineRects(colRects[0],colRects[1])
     ROI=[list(rect[0]),list(rect[1]),rect[2]]
     if ROI[1][0]>ROI[1][1]: #divide width by 4
@@ -64,43 +63,39 @@ def RemoveMinistry(img,colRects,colJsonNames):
         return True
     return False
 
-def main(coldir,imgdir):
-    print("processing "+coldir)
-    clean_names = lambda x: [i for i in x if i[0] != '.']
-    colRectJsons = sorted(clean_names(os.listdir(coldir)))
+def main(Colfilename,args):
+    print("processing "+Colfilename)
+    #import pdb;pdb.set_trace()
+    with open(os.path.join(args.coldir,Colfilename)) as file:
+        colRects=json.load(file)
 
-    imgpath = os.path.join(imgdir,GetImgFilename(colRectJsons[0]))
-    img = cv2.imread(imgpath)
+    if len(colRects)>2 and abs(GetColHeight(colRects[1])-GetColHeight(colRects[2]))<1:   #haven't remove Ministry
+        imgpath = os.path.join(args.imgdir, GetImgFilename(Colfilename))
+        img = cv2.imread(imgpath, 0)
+        if RemoveMinistry(img,colRects):
+            print("remove Minsitry for "+Colfilename)
+            with open(os.path.join(args.outputdir, Colfilename),'w') as file:
+                json.dump(colRects, file)
 
-    colRects,colJsonNames = [],[]
-    for colRectJson in colRectJsons:
-        with open(os.path.join(coldir,colRectJson)) as file:
-            colRects.append(json.load(file))
-            colJsonNames.append(colRectJson)
-
-    if len(colRects)==5 and abs(GetColHeight(colRects[1])-GetColHeight(colRects[2]))<1:   #haven't remove Ministry
-        if RemoveMinistry(img,colRects,colJsonNames):
-            print("remove Minsitry for "+colJsonNames[0]+" and "+colJsonNames[1])
-            with open(os.path.join(coldir, colJsonNames[0]),'w') as file:
-                json.dump(colRects[0], file)
-            with open(os.path.join(coldir, colJsonNames[1]),'w') as file:
-                json.dump(colRects[1], file)
 
 if __name__ == '__main__':
     # construct the argument parse and parse the arguments
     parser = argparse.ArgumentParser(description='Page Detection')
     parser.add_argument('--imgdir', type=str)
     parser.add_argument('--coldir', type=str)
+    parser.add_argument('--outputdir', type=str)
     args = parser.parse_args()
 
+    # create output file
+    if not os.path.isdir(args.outputdir):
+        os.mkdir(args.outputdir)
+        print('creating directory ' + args.outputdir)
+
     clean_names = lambda x: [i for i in x if i[0] != '.']
-    coldir = os.listdir(args.coldir)
-    #coldir = coldir[130::]
-    coldir = sorted(clean_names(coldir))
+    Colfilenames = os.listdir(args.coldir)
+    Colfilenames = sorted(clean_names(Colfilenames))
 
-    coldir = [os.path.join(args.coldir, dir) for dir in coldir]
-    imgdir = [args.imgdir] * len(coldir)
+    args = [args] * len(Colfilenames)
 
-    #Parallel(n_jobs=1)(map(delayed(main), coldir, imgdir))
-    Parallel(n_jobs=multiprocessing.cpu_count())(map(delayed(main), coldir, imgdir))
+    Parallel(n_jobs=-1)(map(delayed(main), Colfilenames, args))
 

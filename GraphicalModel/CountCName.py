@@ -4,7 +4,7 @@ import json
 import numpy as np
 
 #in the cls json file, 2 represent company name
-inputpath='../../personnel-records/1956/cls/'
+inputpath='../../results/personnel-records/1954/cls/firm/'
 clean_names = lambda x: [i for i in x if i[0] != '.']
 count=0
 for dir in sorted(clean_names(os.listdir(inputpath))):  #one dir includes prob for one page

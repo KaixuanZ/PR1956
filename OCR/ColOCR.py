@@ -5,9 +5,6 @@ from google.cloud import vision
 from google.protobuf.json_format import MessageToJson
 from joblib import Parallel, delayed
 import argparse
-import sys
-sys.path.append('../')
-import Rect
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "jp-manager-885dcc3b4488.json"
 client = vision.ImageAnnotatorClient()
@@ -26,7 +23,7 @@ def main(imgdir, outputdir):
         with io.open(imgpath, 'rb') as image_file:
             col = image_file.read()
         col = vision.types.Image(content=col)
-        col_context = vision.types.ImageContext(language_hints=["ja zh*"])
+        col_context = vision.types.ImageContext(language_hints=["zh","ja","en"])
         response = client.document_text_detection(image=col, image_context=col_context)
 
         with open(os.path.join(outputdir,colImg.split('.')[0]+'.json'), 'w') as outfile:
@@ -53,5 +50,3 @@ if __name__ == '__main__':
     imgdir = [os.path.join(args.imgdir, dir) for dir in imgdir]
 
     Parallel(n_jobs=1)(map(delayed(main), imgdir, outputdir))
-    #Parallel(n_jobs=multiprocessing.cpu_count())(map(delayed(main), imgdir, outputdir))
-

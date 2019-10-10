@@ -1,7 +1,18 @@
 #!/usr/bin/env bash
 
-ImgPath=${ImgPath:-'../../personnel-records/1956/scans/parsed'}
+ImgPath=${ImgPath:-'../../raw_data/personnel-records/1954/scans/firm'}
 
-ColPath=${ROIPath:-'../../personnel-records/1956/seg/col_rect'}
+ColPath=${ColPath:-'../../results/personnel-records/1954/seg/firm/col_rect'}
 
-python3 RemoveMinistry.py --imgdir=$ImgPath --coldir=$ColPath  #2>&1 | tee log_Row.txt
+OutputPath=${OutputPath:-'../../results/personnel-records/1954/seg/firm/col_rect_wo_ministry'}
+
+read -p "Do you want to remove previous output in $OutputPath? (y/n) " -n 1 -r
+echo -e "\n"
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+    echo "removing $OutputPath"
+
+    rm $OutputPath --recursive
+fi
+
+python3 RemoveMinistry.py --imgdir=$ImgPath --coldir=$ColPath --outputdir=$OutputPath  #2>&1 | tee log_Row.txt

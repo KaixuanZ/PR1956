@@ -15,15 +15,12 @@ def OutputImg(img,outputpath,label):
     print("saving image to "+outpath)
 
 def ReadImg(imgpath,row):
-    #for pr1956
-    filename='pr1956_f'+row[1].zfill(4)+'_'+row[2]+'_'+row[3]
-    filepath=os.path.join(imgpath ,filename ,filename + '_' + row[4] + '_' + str(row[5]).zfill(3)+'.png')
+    filename='pr1954_p'+row[1].zfill(4)+'_'+row[2]
+    filepath=os.path.join(imgpath ,filename ,filename + '_' + row[3] + '_' + str(row[4]).zfill(3)+'.png')
     img=cv2.imread(filepath,0)  #gray img (width height)
     return img
 
 def GenerateDataset(imgpath,outputpath,labelfile,dict):
-    if not os.path.isdir(outputpath):
-        os.mkdir(outputpath)
     with open(labelfile) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
         line_count = 0
@@ -64,5 +61,7 @@ if __name__ == '__main__':
 
     dict=GetLabelDict(args.labeldict)
     print(dict)
-
+    if not os.path.isdir(args.outputpath):
+        os.mkdir(args.outputpath)
+        print("making directory "+args.outputpath)
     GenerateDataset(args.imgpath,args.outputpath,args.labelfile,dict)

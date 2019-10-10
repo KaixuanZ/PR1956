@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 
-InputPath=${InputPath:-'../../personnel-records/1956/prob/'}
+InputPath=${InputPath:-'../../results/personnel-records/1954/prob/firm/'}
 
-OutputPath=${OutputPath:-'../../personnel-records/1956/cls/'}
+OutputPath=${OutputPath:-'../../results/personnel-records/1954/cls/firm/'}
 
-Trainset=${Trainset:-'../../personnel-records/1956/csv/trainset_pr1956.csv'}
+Trainset=${Trainset:-'../../results/personnel-records/1954/labeled_data/trainset_pr1954.csv'}
 
-Id2Name_cls=${Id2Name_cls:-'../../personnel-records/1956/IdNameMap.json'}
+Id2Name_cls=${Id2Name_cls:-'../../results/personnel-records/1954/labeled_data/IdNameMap.json'}
 
-Id2Name_label=${Id2Name_label:-'../../personnel-records/1956/csv/Id2Name_label.csv'}
+Id2Name_label=${Id2Name_label:-'../../results/personnel-records/1954/labeled_data/Id2Name_label.csv'}
 
 
 read -p "Do you want to remove previous output in $OutputPath? (y/n) " -n 1 -r
@@ -27,6 +27,6 @@ python GraphicalModel.py --inputpath=$InputPath --outputpath=$OutputPath --train
 python CountCName.py
 
 # for teikoku 1957
-# 98.15% without graphicalmodel
-# 98.36% with manual setup
-# 98.56% with automatic estimation
+# 98.4% without graphicalmodel
+# 99.4% with manual setup
+# 99.7% with automatic estimation

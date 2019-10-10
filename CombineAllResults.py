@@ -2,8 +2,6 @@
 
 from joblib import Parallel, delayed
 import argparse
-import sys
-import multiprocessing
 import os
 import json
 import cv2
@@ -15,88 +13,181 @@ import Rect
 
 clean_names = lambda x: [i for i in x if i[0] != '.']
 
+class Page(object):
+    def __init__(self,img=None,page_filename=None,ocr_jsonfiles=None,col_rects=None,row_rects=None,cls=None):
+        '''
+        :param img:             image of this page
+        :param page_filename:   filename of img
+        :param ocr_jsonfiles:   a list of path of OCR output [ocr_jsonfile]
+        :param col_rects:       a list of col_rect in this page [col_rect]
+        :param row_rects:       a dict of row_rect in this page {'col_num':[row_rect]}
+        :param cls:             a list of classification of row images [cls]
+        each rect is a list contrains five parameters [[x,y],[H,W],theta]
+        '''
+        self.img=img
+        self.cols=[]
+        self.ocr_jsonfiles=ocr_jsonfiles
+        self.col_rects=col_rects
+        self.row_rects=row_rects
+        self.page_index={}
+        self.cls=cls
+        if page_filename:
+            self.FilenameToKey(page_filename)
+
+    def FilenameToKey(self, filename):
+        self.page_index['book'], self.page_index['page'], self.page_index['subpage']= filename.split('.')[0].split('_')
+
+    def SetCols(self):
+        row_nums=[0]
+        for key in sorted(self.row_rects.keys()):
+            row_nums.append(row_nums[-1]+len(self.row_rects[key]))
+        for i in range(len(self.ocr_jsonfiles)):
+            _,col_M = Rect.CropRect(self.img, self.col_rects[i])
+            self.cols.append(Col(self.ocr_jsonfiles[i],col_M, self.row_rects[str(i)], self.cls[row_nums[i]:row_nums[i+1]], i))
+            self.cols[-1].SetRows()
+
+    def SaveToCsv(self,outputpath):
+        #save information of this page to one csv file
+        df=self.ToDataFrame()
+        df.to_csv(outputpath)
+        print("saving output to " + outputpath)
+
+    def ToDataFrame(self):
+        #reshape inforamtion of this page to dataframe
+        label=['book', 'page', 'subpage']
+        val=[self.page_index['book'],self.page_index['page'],self.page_index['subpage']]
+        df=[]
+        for col in self.cols:
+            df.append(col.ToDataFrame(val,label))
+        return pd.concat(df)
+
+class Col(object):
+    def __init__(self,ocr_jsonfile=None,col_M=None,row_rects=None,cls=None,col_index=None):
+        '''
+        :param ocr_jsonfile:    path of OCR output
+        :param col_M:           transformation from page to col
+        :param row_rects:       a list of row_rect in this column [row_rect]
+        :param cls:             a dict of cls in this column [cls]
+        :param col_index:       index of this column in page
+        '''
+        self.ocr_jsonfile=ocr_jsonfile
+        self.rows=[]
+        self.row_rects=row_rects
+        self.col_M=col_M
+        self.cls=cls
+        self.col_index=str(col_index)
+
+    def SetRows(self):
+        for i in range(len(self.cls)):
+            #row rect on col img coordinate
+            row_rect = Rect.RectOnSrcImg(cv2.boxPoints(tuple(self.row_rects[i])), np.linalg.inv(self.col_M))
+            self.rows.append(Row(row_rect,self.cls[i],i))
+        self.AssignDocumentWordsToRow()
+
+    def AssignDocumentWordsToRow(self):
+        '''
+        assign OCR output to coorespondent row
+        :return: self.rows with OCR output (self.rows.words, self.rows.AOI)
+        '''
+        with open(self.ocr_jsonfile) as json_file:
+            data = json.load(json_file)
+            parsed = image_annotator_pb2.AnnotateImageResponse()
+            Parse(data, parsed)
+
+        document = parsed.full_text_annotation
+        # Collect specified feature bounds by enumerating all document features
+        for page in document.pages:
+            for block in page.blocks:
+                for paragraph in block.paragraphs:
+                    for word in paragraph.words:
+                        assign_document_word_to_row(word, self.rows)
+
+    def ToDataFrame(self,val,label):
+        '''
+        :param val:     values of correspondent labels from page level
+        :param label:   labels come from page level
+        :return:        a dataframe which contains information of this column
+        '''
+
+        label_col=label+['col']
+        val_col=val+[self.col_index]
+        df=[]
+        for row in self.rows:
+            df.append(row.ToDataFrame(val_col,label_col))
+        return pd.concat(df)
+
 class Row(object):
-    def __init__(self, rect=None, rect_filename=None,cls=None):
-        self.row_rect = rect  # rect on col image
-        if rect:
-            self.row_bbox = cv2.boxPoints(tuple(rect)).tolist()
+    def __init__(self, row_rect=None ,cls=None, row_index=None):
+        '''
+        :param row_rect:    row_rect of this row
+        :param cls:         cls of this row
+        :param row_index:   index of this row in column
+        '''
+        self.row_bbox = None
+        self.row_rect = row_rect
+        if row_rect:
+            self.row_bbox = cv2.boxPoints(tuple(row_rect)).tolist()
         self.cls = cls
         self.words = []
         self.AOIs = []  # area of intersections (normalized by area of each word)
-        self.key = {}  # file,page,subpage,col,row
-        if rect_filename:
-            self.FilenameToKey(rect_filename)
-
-    def FilenameToKey(self, rect_filename):
-        self.key['book'], self.key['file'], self.key['subfile'], self.key['page'], self.key['col'], self.key['row'] = rect_filename.split('.')[0].split('_')
+        self.row_index = str(row_index).zfill(3)
 
     def ToDict(self):
         dict = {}
-        dict['row_rect'] = self.row_rect
         dict['row_bbox'] = self.row_bbox
         dict['words'] = self.words
         dict['AOIs'] = self.AOIs
-        dict['key'] = self.key
         dict['cls'] = self.cls
+        dict['row_index']=self.row_index
         return dict
 
-    def ToDF(self):
+    def ToDataFrame(self,val,label):
+        '''
+        :param val:     values of correspondent labels from column level
+        :param label:   labels come from column level
+        :return:        a dataframe which contains information of this row
+        '''
         data = []
-        label = ['book', 'file', 'subfile', 'page', 'col', 'row', 'cls', 'row_bbox', 'row_rect']
-        row = [self.key['book'], self.key['file'], self.key['subfile'], self.key['page'], self.key['col'],
-               self.key['row'], self.cls, self.row_bbox, self.row_rect]
+        label_row = label+['row', 'cls', 'row_bbox']
+        val_row = val+ [self.row_index,self.cls,self.row_bbox]
 
         get_box = lambda dict: [[dict['vertices'][0]['x'], dict['vertices'][0]['y']],
                                 [dict['vertices'][1]['x'], dict['vertices'][1]['y']],
                                 [dict['vertices'][2]['x'], dict['vertices'][2]['y']],
                                 [dict['vertices'][3]['x'], dict['vertices'][3]['y']]]
 
-        label += ['AOI', 'word_bbox', 'word_confidence']
-        label += ['symbol_bbox', 'symbol_confidence', 'symbol']
+        label_row += ['AOI', 'word_bbox', 'word_confidence']
+        label_row += ['symbol_bbox', 'symbol_confidence', 'symbol']
         text = ''
         for i in range(len(self.words)):
             try:
-                row1 = row + [self.AOIs[i], get_box(self.words[i]['boundingBox']), self.words[i]['confidence']]
+                val_row1 = val_row + [self.AOIs[i], get_box(self.words[i]['boundingBox']), self.words[i]['confidence']]
             except:
-                row1 = row + [self.AOIs[i], None, self.words[i]['confidence']]
+                val_row1 = val_row + [self.AOIs[i], None, self.words[i]['confidence']]
             for symbol in self.words[i]['symbols']:
                 text += symbol['text']
                 try:
-                    row2 = row1 + [get_box(symbol['boundingBox']), symbol['confidence'], symbol['text']]
+                    val_row2 = val_row1 + [get_box(symbol['boundingBox']), symbol['confidence'], symbol['text']]
                 except:
                     try:
-                        row2 = row1 + [None, symbol['confidence'], symbol['text']]
+                        val_row2 = val_row1 + [None, symbol['confidence'], symbol['text']]
                     except:
-                        row2 = row1 + [None, None, symbol['text']]
-                data.append(row2)
-        if len(self.words)==0:
-            data.append(row+[None]*6)
-        df = pd.DataFrame.from_records(data, columns=label)
-        df.insert(len(label), 'text', text)
+                        val_row2 = val_row1 + [None, None, symbol['text']]
+                data.append(val_row2)
 
+        if len(self.words)==0:
+            data.append(val_row+[None]*6)
+        df = pd.DataFrame.from_records(data, columns=label_row)
+        df.insert(len(label_row), 'text', text)
         return df
 
-    def ToJson(self, jsonfile=None,info=False):
-        if jsonfile:
-            with open(jsonfile, 'w') as outfile:
-                json.dump(self.ToDict(), outfile)
-            if info:
-                print("writing data to " + jsonfile)
-        else:
-            return self.ToDict()
-
-    def FromJson(self, jsonfile):
-        with open(jsonfile) as file:
-            data = json.load(file)
-        self.row_rect = data['row_rect']
-        self.row_bbox = data['row_bbox']
-        self.words = data['words']
-        self.AOIs = data['AOIs']
-        self.key = data['key']
-        self.cls = data['cls']
-
-
 def assign_document_word_to_row(word, rows):
+    '''
+    assign word to nearest row (L2 distance)
+    :param word: a word returned by Google Cloud Vision
+    :param rows: a list of rows in one column
+    :return: rows with information of the input word
+    '''
     areas,dists = [],[]
     box = np.array([[word.bounding_box.vertices[0].x, word.bounding_box.vertices[0].y],
                     [word.bounding_box.vertices[1].x, word.bounding_box.vertices[1].y],
@@ -117,106 +208,41 @@ def assign_document_word_to_row(word, rows):
     rows[index].words.append(MessageToDict(word))
     rows[index].AOIs.append(max_area / word_rect[1][0] / word_rect[1][1])
 
-
-def assign_document_words_to_row(ocr_file, rows):
-    with open(ocr_file) as json_file:
-        data = json.load(json_file)
-        parsed = image_annotator_pb2.AnnotateImageResponse()
-        Parse(data, parsed)
-        # import pdb; pdb.set_trace()
-
-    document = parsed.full_text_annotation
-    # Collect specified feature bounds by enumerating all document features
-    for page in document.pages:
-        for block in page.blocks:
-            for paragraph in block.paragraphs:
-                for word in paragraph.words:
-                    assign_document_word_to_row(word, rows)
-    return rows
-
-
-def CombineResToRow(img, col_rect_json, row_rect_json, cls):
-    with open(col_rect_json) as jsonfile:
-        col_rect = json.load(jsonfile)
-    _, M = Rect.CropRect(img, col_rect)
-    M = np.linalg.inv(M)
-
-    with open(row_rect_json) as jsonfile:
-        row_rect = json.load(jsonfile)
-        row_rect = Rect.RectOnSrcImg(cv2.boxPoints(tuple(row_rect)), M)
-        row = Row(row_rect, row_rect_json.split('/')[-1], cls)
-
-    return row
-
-def SaveRowsToCSV(rows,output_file):
-    if len(rows):
-        res=rows[0].ToDF()
-        for row in rows[1:]:
-            res= res.append(row.ToDF())
-        res.to_csv(output_file)
-        print("saving output to "+output_file)
-    else:
-        print("no data for writing to CSV")
-
-def main(page_dir, args):
-    print("processing "+page_dir)
+def main(page_index, args):
+    '''
+    :param page_index:  page to be processed
+    :param args:
+    :return:            an object page
+    '''
+    print("processing "+page_index)
 
     #read in image
-    book,file,subfile,page = page_dir.split('_')
-    imgfile=book+"_"+file[0]+str(int(file[1:]))+"_"+subfile+".tif"
-    img=cv2.imread(os.path.join(args.img_dir,imgfile))
+    book,page,_ = page_index.split('_')
+    imgfile=book+"_p"+str(int(page[1:]))+".png"
+    img=cv2.imread(os.path.join(args.img_dir,imgfile),0)
 
-    cls_json=os.path.join(args.row_cls_dir,page_dir+'.json')
+    #get ocr json filenames
+    ocr_jsons = [os.path.join(args.OCR_dir,page_index,ocrfile) for ocrfile in sorted(clean_names(os.listdir(os.path.join(args.OCR_dir, page_index))))]
+
+    #get cls
+    cls_json = os.path.join(args.row_cls_dir, page_index + '.json')
     with open(cls_json) as jsonfile:
-        cls=json.load(jsonfile)
-    cls=cls["name"]
-    row_rect_files=sorted(clean_names(os.listdir(os.path.join(args.row_rect_dir,page_dir))))
+        cls = json.load(jsonfile)
+    cls = cls["name"]
 
-    rows=[]
-    row_nums=[0,0,0,0,0]
-    #get class Row
-    for i in range(len(row_rect_files)):
-        row_rect_json = row_rect_files[i]
-        row_rect = os.path.join(args.row_rect_dir,page_dir,row_rect_json)
-        col_rect_json = row_rect_json[:-9]+row_rect_json[-5:]
-        col_rect = os.path.join(args.col_rect_dir, page_dir, col_rect_json)
-        rows.append(CombineResToRow(img, col_rect, row_rect, cls[i]))
-        row_nums[int(rows[i].key['col'])]+=1
-    #combine OCR with row
-    ocr_jsons = sorted(clean_names(os.listdir(os.path.join(args.OCR_dir, page_dir))))
+    #get col_rects
+    with open(os.path.join(args.col_rect_dir,page_index+'.json')) as jsonfile:
+        col_rects=json.load(jsonfile)
 
-    for i in range(len(ocr_jsons)):
-        ocr_json = os.path.join(args.OCR_dir, page_dir, ocr_jsons[i])
-        l,r = sum(row_nums[:i]),sum(row_nums[:i+1])
-        rows = rows[:l]+ assign_document_words_to_row(ocr_json, rows[l:r]) +rows[r:]
+    #get row_rects
+    with open(os.path.join(args.row_rect_dir,page_index+'.json')) as jsonfile:
+        row_rects=json.load(jsonfile)
 
-    #save results to json
-    if not os.path.isdir(os.path.join(args.output_dir,'json')):
-        os.mkdir(os.path.join(args.output_dir,'json'))
-        print('creating directory ' + os.path.join(args.output_dir,'json'))
-    for i in range(len(rows)):
-        json_dir = os.path.join(args.output_dir,'json',page_dir)
-        if not os.path.isdir(json_dir):
-            os.mkdir(json_dir)
-        jsonfile = os.path.join(json_dir,page_dir+"_"+rows[i].key['row']+".json")
-        rows[i].ToJson(jsonfile,i%100==0)
+    page=Page(img=img,page_filename=page_index,ocr_jsonfiles=ocr_jsons,col_rects=col_rects,row_rects=row_rects,cls=cls)
+    page.SetCols()
 
     #save results to csv
-    if not os.path.isdir(os.path.join(args.output_dir,'csv')):
-        os.mkdir(os.path.join(args.output_dir,'csv'))
-        print(os.path.join(args.output_dir,'csv'))
-    SaveRowsToCSV(rows,os.path.join(args.output_dir,'csv',page_dir+'.csv'))
-
-        #import pdb;pdb.set_trace()
-
-class Args(object):
-    def __init__(self, args):
-        self.img_dir = args.img_dir
-        self.col_rect_dir = args.col_rect_dir
-        self.row_rect_dir = args.row_rect_dir
-        self.row_cls_dir = args.row_cls_dir
-        self.OCR_dir = args.OCR_dir
-        self.output_dir = args.output_dir
+    page.SaveToCsv(os.path.join(args.output_dir,page_index+'.csv'))
 
 
 if __name__ == '__main__':
@@ -234,8 +260,5 @@ if __name__ == '__main__':
         os.mkdir(args.output_dir)
         print('creating directory ' + args.output_dir)
 
-    page_dirs = sorted(clean_names(os.listdir(args.row_rect_dir)))
-    n = len(page_dirs)
-    args = [args] * n
-    #Parallel(n_jobs=1)(map(delayed(main), page_dirs, args))
-    Parallel(n_jobs=multiprocessing.cpu_count())(map(delayed(main), page_dirs, args))
+    page_index = sorted(clean_names(os.listdir(args.OCR_dir)))
+    Parallel(n_jobs=-1)(map(delayed(main), page_index, [args]*len(page_index)))

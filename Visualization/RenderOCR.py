@@ -10,7 +10,7 @@ sys.path.append('../')
 import Rect
 from google.protobuf.json_format import Parse
 from google.cloud.vision_v1.proto import image_annotator_pb2
-
+from joblib import Parallel, delayed
 
 class box(object):
     def __init__(self, bound, confidence):
@@ -44,6 +44,10 @@ def draw_boxes(image, boxes):
         cv2.drawContours(image, [box], 0, color, 3)
     return image
 
+def GetImgFilename(string):
+    book, p , _ = string.split('.')[0].split('_')
+    p = p[0] + str(int(p[1:]))
+    return book + '_' + p + '.png'
 
 def get_document_boxes(ocr_file, feature):
     """Returns document bounds given an image."""
@@ -74,28 +78,31 @@ def get_document_boxes(ocr_file, feature):
     return boxes
 
 
-def render_doc_text(args):
-    image = cv2.imread(args.img_path)
-    clean_names = lambda x: [i for i in x if i[0] != '.']
-    col_rects = sorted(clean_names(os.listdir(args.rect_dir)))
+def render_doc_text(col_rect, args):
+    #import pdb;pdb.set_trace()
+    image = cv2.imread(os.path.join(args.img_path,GetImgFilename(col_rect)))
+    col_rect_dir=col_rect.split('.')[0]
+    gcv_outputs=sorted(clean_names(os.listdir(os.path.join(args.gcv_dir,col_rect_dir))))
 
-    gcv_outputs=sorted(clean_names(os.listdir(args.gcv_dir)))
-    for i in range(len(col_rects)):
-        with open(os.path.join(args.rect_dir,col_rects[i])) as rectjson:
-            rect = json.load(rectjson)
-        warped,_=Rect.CropRect(image,rect)
+    with open(os.path.join(args.rect_dir, col_rect)) as rectjson:
+        col_rects = json.load(rectjson)
 
-        boxes = get_document_boxes(os.path.join(args.gcv_dir,gcv_outputs[i]), FeatureType.SYMBOL)
+    for i in range(len(gcv_outputs)):
+
+        warped,_=Rect.CropRect(image,col_rects[i])
+
+        boxes = get_document_boxes(os.path.join(args.gcv_dir,col_rect_dir,gcv_outputs[i]), FeatureType.SYMBOL)
         draw_boxes(warped, boxes)
 
-        output_dir=os.path.join(args.output_dir,col_rects[i].split('.')[0][:-2])
+        output_dir=os.path.join(args.output_dir,col_rect_dir)
         if not os.path.isdir(output_dir):
             os.mkdir(output_dir)
             print('creating directory ' + output_dir)
-        path=os.path.join(output_dir,col_rects[i].split('.')[0]+'.png')
+        path=os.path.join(output_dir,gcv_outputs[i].split('.')[0]+'.png')
 
         cv2.imwrite(path,warped)
         print("saving visualization results to "+path)
+    #import pdb;pdb.set_trace()
 
 
 
@@ -107,5 +114,7 @@ if __name__ == '__main__':
     parser.add_argument('--output_dir', help='Optional output file')
     args = parser.parse_args()
 
-    render_doc_text(args)
+    clean_names = lambda x: [i for i in x if i[0] != '.']
+    col_rects=sorted(clean_names(os.listdir(args.rect_dir)))[::500]
 
+    Parallel(n_jobs=1)(map(delayed(render_doc_text), col_rects, [args] * len(col_rects)))

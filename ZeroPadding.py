@@ -16,5 +16,4 @@ outputdir='../raw_data/personnel-records/1956/scans/firm'
 clean_names = lambda x: [i for i in x if i[0] != '.']
 files=sorted(clean_names(os.listdir(inputdir)))
 
-
 Parallel(n_jobs=-1)(map(delayed(CopyAndPaste), files, [inputdir]*len(files),[outputdir]*len(files)))

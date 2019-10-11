@@ -4,7 +4,7 @@ def Viterbi(edges_list,vertices_list):    #a list of edges, a list of vertices
     if len(edges_list)!=len(vertices_list)-1 or len(edges_list)<=0:
         print("input format error for Viterbi algorithm!")
         return None
-    print("Viterbi algorithm start")
+    #print("Viterbi algorithm start")
     indexes_list=[]
     '''
     info_dict={}    #for debug
@@ -15,8 +15,8 @@ def Viterbi(edges_list,vertices_list):    #a list of edges, a list of vertices
     pre_probs=np.array(vertices_list.pop(0))
     #pre_probs[pre_probs<np.max(pre_probs)]=0
     for i in range(len(vertices_list)):
-        if i%100==0:
-            print(i)
+        #if i%100==0:
+        #    print(i)
         #import pdb;pdb.set_trace()
         cur_edges=np.array(edges_list[i])
         cur_vertices=np.array(vertices_list[i])     #(Dim_pre,Dim_cur)
@@ -49,7 +49,7 @@ def Viterbi(edges_list,vertices_list):    #a list of edges, a list of vertices
     while indexes_list:
         index=indexes_list.pop()[index]
         indexes.append(index)
-    print("Viterbi algorithm finish")
+    #print("Viterbi algorithm finish")
     return indexes[::-1]
 
 def test():

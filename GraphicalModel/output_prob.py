@@ -39,7 +39,6 @@ def main(inputpath,outputpath,weightfile):
         print('creating directory ' + outputpath)
 
     model=LoadModel(height,width,weightfile)
-    count=0
     for outputfile in clean_names(os.listdir(inputpath)):
         print("processing image in "+outputfile)
         res={}

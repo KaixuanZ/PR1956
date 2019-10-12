@@ -4,23 +4,23 @@ This project is mainly based on our NeurIPS 2019 workshop paper [Information Ext
 
 ## Repo Structure
 
-#### /Docunments
+#### `Documents/`
 
 Files explaining the methods of [preprocessing](Documemts/PreprocessingMethods.md) and [classification](Documemts/PreprocessingMethods.md)
 
-#### /Visualization
+#### `Visualization/`
 
 Code for visualization results
 
-#### /OCR
+#### `OCR/`
 
 Code for using Google Cloud Vision API
 
-#### /Preprocessing
+#### `Preprocessing/`
 
 Code for preprocessing pipeline
 
-#### /CNN, /GraphicalModel, and /Postprocessing
+#### `CNN/`, `GraphicalModel/`, and `Postprocessing/`
 
 Code for classification pipeline
 

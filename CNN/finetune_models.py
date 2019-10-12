@@ -123,6 +123,7 @@ def main(trainset,weight_path,output_path):
     train_generator = DataGenerator(X_train, y_train, 64)
     val_generator = DataGenerator(X_val, y_val, 64)
 
+    #model
     base_model = keras.applications.mobilenet.MobileNet(input_shape=(height, width, 1), alpha=1.0,
                                             depth_multiplier=1, dropout=1e-2, include_top=True,
                                             weights=weight_path, classes=7)

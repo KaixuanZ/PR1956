@@ -1,4 +1,4 @@
-#Classification Pipeline
+# Classification Pipeline
 
 CNN classification ==> Linear Chain CRF ==> Dynamic String Warping
 

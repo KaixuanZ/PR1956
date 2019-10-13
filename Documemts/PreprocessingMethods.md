@@ -1,4 +1,4 @@
-#Preprocessing Pipeline
+# Preprocessing Pipeline
 
 Original Scanned Image ==> Page Detection ==> ROI Detection ==> Column Segmentation ==> Row Segmentation
 

@@ -48,17 +48,6 @@ def TrainGaussian(file):
     cov = np.cov(data)
     return mean, cov
 
-
-def Zeropadding(filename):
-    '''
-    :param filename:    original file name
-    :return:            zeropadding on the page number
-    '''
-    filename = filename.split('.')[0]
-    book, p = filename.split('_')
-    p = p[0] + p[1:].zfill(4)   #zeropadding
-    return book + '_' + p
-
 def OutputRect(outputdir,filename,rect,splitPage=False):
     '''
     :param outputdir:   output dir
@@ -85,23 +74,23 @@ def OutputRect(outputdir,filename,rect,splitPage=False):
             rect1 = [[rect[0][0] + vect[0], rect[0][1] + vect[1]], [width / 2, height], rect[2]]
         with open(os.path.join(outputdir, filename + '_0.json'), 'w') as outfile:
             json.dump(rect0, outfile)
-            print('writing results to ' + os.path.join(outputdir, filename + '_0.json'))
+            #print('writing results to ' + os.path.join(outputdir, filename + '_0.json'))
         with open(os.path.join(outputdir, filename + '_1.json'), 'w') as outfile:
             json.dump(rect1, outfile)
-            print('writing results to ' + os.path.join(outputdir, filename + '_1.json'))
+            #print('writing results to ' + os.path.join(outputdir, filename + '_1.json'))
     else:
         with open(os.path.join(outputdir, filename), 'w') as outfile:
             json.dump(rect, outfile)
-            print('writing results to ' + os.path.join(outputdir, filename))
+            #print('writing results to ' + os.path.join(outputdir, filename))
 
 def main(filename,args):
     #file = '1.tif'
     #mean, cov = TrainGaussian(file)
     #import pdb;pdb.set_trace()
-    mean=np.array([21.10017766, 54.98637383])
-    cov=np.array([[ 1.60955243, -3.2812577 ],
-       [-3.2812577 , 27.98176373]])
-    thr = 4
+    mean = np.array([20.76549421, 68.80967093])
+    cov = np.array([[2.00308826, -7.05376449],
+                    [-7.05376449, 46.9934228]])
+    thr = 2.5
 
     print("processing ",filename)
     #import pdb;pdb.set_trace()
@@ -117,7 +106,7 @@ def main(filename,args):
     mask_HS = SegByMahalonobisDistance(img_hsv[:, :, 0:2], mean, cov, thr)
 
     #seg in V space
-    mask_V = img_hsv[:,:,2]>175
+    mask_V = img_hsv[:,:,2]>190
 
     #combine them
     mask = mask_HS * mask_V
@@ -138,12 +127,12 @@ def main(filename,args):
     _, cnts, _ = cv2.findContours((labels == label1).astype(np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     rect0 = cv2.minAreaRect(cnts[0] * k)
 
-    filename=Zeropadding(filename)
+    filename=filename.split('.')[0]
     # seg pages to page if necessary
-    if rect0[1][0]*rect0[1][1]>0.70*img.shape[0]*img.shape[1]:
-        print("split rect")
+    if rect0[1][0]*rect0[1][1]>0.76*img.shape[0]*img.shape[1]:
+        #print("split rect")
         OutputRect(args.outputdir,filename,rect0,splitPage=True)
-    elif rect0[1][0]*rect0[1][1]>0.35*img.shape[0]*img.shape[1]:
+    elif rect0[1][0]*rect0[1][1]>0.38*img.shape[0]*img.shape[1]:
         #page(s) may be detected seperately
         _, cnts1,_ = cv2.findContours((labels==label2).astype(np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE )
         rect1=cv2.minAreaRect(cnts1[0]*k)

@@ -24,20 +24,15 @@ def ExpandCol(rect,n):
             rect[1][0] = rect[1][0] + rect[1][1] * 0.1325 * 2
     return tuple(rect)
 
-def GetImgFilename(jsonfile):
-    book, p , _ = jsonfile.split('.')[0].split('_')
-    p = p[0] + str(int(p[1:]))
-    return book + '_' + p + '.png'
-
 def main(pagefilename,args):
     '''
     :return: rect(s) of detected ROI
     estimate the ROI by finding the vertical lines
     '''
     print("processing "+pagefilename)
-    imgfilename=GetImgFilename(pagefilename)
+    imgfilename='_'.join(pagefilename.split('_')[:-1])+'.png'
 
-    img = cv2.imread(os.path.join(args.imgdir,imgfilename), 0)
+    img = cv2.imread(os.path.join(args.inputdir,imgfilename), 0)
 
     with open(os.path.join(args.pagedir,pagefilename)) as file:
         rect = json.load(file)
@@ -100,13 +95,13 @@ def main(pagefilename,args):
     #save the rect as json
     with open(os.path.join(args.outputdir, pagefilename), 'w') as outfile:
         json.dump(rect, outfile)
-        print('writing results to ' + os.path.join(args.outputdir, pagefilename))
+        #print('writing results to ' + os.path.join(args.outputdir, pagefilename))
 
 
 if __name__ == '__main__':
     # construct the argument parse and parse the arguments
     parser = argparse.ArgumentParser(description='Page Detection')
-    parser.add_argument('--imgdir', type=str)
+    parser.add_argument('--inputdir', type=str)
     parser.add_argument('--pagedir', type=str)
     parser.add_argument('--outputdir', type=str)
     args = parser.parse_args()

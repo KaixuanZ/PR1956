@@ -1,20 +1,38 @@
 #!/usr/bin/env bash
 
-ImgPath=${ImgPath:-'../../raw_data/personnel-records/1954/scans/official_office'}
+declare -a Sections=("supplement" "firm")
 
-PagePath=${PagePath:-'../../results/personnel-records/1954/seg/official_office/page_rect'}
+InputPath=${InputPath:-'../../raw_data/personnel-records/1956/scans/'}
 
-OutputPath=${OutputPath:-'../../results/personnel-records/1954/seg/official_office/ROI_rect'}
+PagePath=${PagePath:-'../../results/personnel-records/1956/seg/'}
 
-read -p "Do you want to remove previous output in $OutputPath? (y/n) " -n 1 -r
+OutputPath=${OutputPath:-'../../results/personnel-records/1956/seg/'}
+
+read -p "Do you want to remove previous output of probability in $OutputPath? (y/n) " -n 1 -r
 echo -e "\n"
+DELETE="N"
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
-    echo "removing $OutputPath"
-
-    rm $OutputPath --recursive
+    DELETE='Y'
 fi
 
-python3 Page2ROI.py --imgdir=$ImgPath --pagedir=$PagePath --outputdir=$OutputPath #2>&1 | tee log_ROI.txt
+for section in "${Sections[@]}"; do
+
+    InputPath_section="$InputPath$section"
+    PagePath_section="$PagePath$section/page_rect"
+    OutputPath_section="$OutputPath$section/ROI_rect"
+
+    if test "$DELETE" == 'Y'
+    then
+        echo "removing $OutputPath_section"
+
+        rm $OutputPath_section --recursive
+    fi
+
+    mkdir $OutputPath_section
+
+    python3 Page2ROI.py --inputdir=$InputPath_section --pagedir=$PagePath_section --outputdir=$OutputPath_section  2>&1 | tee "../../results/personnel-records/1956/log/log_Page2ROI_$section.txt"
+
+done
 
 

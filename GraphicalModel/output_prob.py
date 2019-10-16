@@ -19,17 +19,11 @@ def LoadModel(height,width,weightfile):
         x = base_model.get_layer("conv_pw_13_relu").output
         x = GlobalAveragePooling2D(data_format=None)(x)
         x = Dropout(0.5)(x)
-        predictions = Dense(5, activation='softmax')(x)
+        predictions = Dense(6, activation='softmax')(x)
 
     model = Model(inputs=base_model.input, outputs=predictions)
     model.load_weights(weightfile)
     return model
-
-def ZeroPadding(filename):
-    #for pr1954
-    fname , _ =filename.split('.')
-    _ , _ , _ , col , row = fname.split('_')
-    return col,row.zfill(3)
 
 def main(inputpath,outputpath,weightfile):
     height,width = 80,800
@@ -48,7 +42,7 @@ def main(inputpath,outputpath,weightfile):
             prob = model.predict(data[None,...,None])   #input should have four dimension, here:[N=1,H,W,C=1]
             prob = prob.tolist()[0]
             prob = dict(zip(range(len(prob)), prob))
-            col,row=ZeroPadding(img)    #necessary for dataset without zeropadding
+            _ , _ , _ , _ , col , row =img.split('.')[0].split('_')
 
             if col not in res.keys():
                 res[col]={}

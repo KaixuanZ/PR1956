@@ -125,7 +125,7 @@ def main(trainset,weight_path,output_path):
 
     #model
     base_model = keras.applications.mobilenet.MobileNet(input_shape=(height, width, 1), alpha=1.0,
-                                            depth_multiplier=1, dropout=0.5, include_top=True,
+                                            depth_multiplier=1, dropout=0.3, include_top=True,
                                             weights=weight_path, classes=7)
 
     with tf.name_scope("output"):
@@ -148,7 +148,7 @@ def main(trainset,weight_path,output_path):
 
     reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor='val_acc', factor=0.0050, patience=6, mode='auto', cooldown=0, min_lr=0)
 
-    model.fit_generator(train_generator, validation_data=val_generator, epochs=30, callbacks=[reduce_lr,mc])
+    model.fit_generator(train_generator, validation_data=val_generator, epochs=40, callbacks=[reduce_lr,mc])
 
 
 if __name__ == '__main__':

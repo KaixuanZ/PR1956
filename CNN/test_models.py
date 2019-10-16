@@ -57,11 +57,14 @@ def main(testset,weight_path):
     res = model.predict(X[..., None])   #input should have four dimension, here:[N,H,W,C=1]
     cls = res.argmax(axis=1)
     count=0
+    conf_mat=np.zeros([len(target_names),len(target_names)])
     for i in range(len(cls)):
+        conf_mat[cls[i],y[i]]+=1
         if cls[i]!=y[i]:
             count+=1
     acc=1-count/len(cls)
-    print('acc on testing set:',acc)
+    print('acc on testing set: ',acc)
+    print('confusion matrix: \n',conf_mat)
     #import pdb;pdb.set_trace()
 
 

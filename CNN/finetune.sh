@@ -3,7 +3,7 @@
 
 TrainSet=${TrainSet:-'../../results/personnel-records/1956/trainset/'}
 
-WeightPath=${WeightPath:-'../../results/personnel-records/1956/models/pr1956.h5'}
+WeightPath=${WeightPath:-'../../results/personnel-records/1956/models/pr1954.h5'}
 
 OutputPath=${OutputPath:-'../../results/personnel-records/1956/models/'}
 

@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 
 #declare -a Sections=("bank" "credit_union" "firm" "official_office" "supplement")
-declare -a Sections=("official_office" "supplement")
+declare -a Sections=("firm" "supplement")
 GPUNum=${GPUNum:-0}
 
-ImgPath=${ImgPath:-'../../results/personnel-records/1954/seg/'}
+ImgPath=${ImgPath:-'../../results/personnel-records/1956/seg/'}
 
-OutputPath=${OutputPath:-'../../results/personnel-records/1954/prob/'}
+OutputPath=${OutputPath:-'../../results/personnel-records/1956/prob/'}
 
-WeightFile=${WeightFile:-'../../results/personnel-records/1954/models/model_pr1954.h5'}
+WeightFile=${WeightFile:-'../../results/personnel-records/1956/models/model_pr1956.h5'}
 
 mkdir $OutputPath
 

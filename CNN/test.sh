@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-TestSet=${TestSet:-'../../results/personnel-records/1954/testset/'}
+TestSet=${TestSet:-'../../results/personnel-records/1956/testset/'}
 
-WeightPath=${WeightPath:-'../../results/personnel-records/1954/models/weights30.h5'}
+WeightPath=${WeightPath:-'../../results/personnel-records/1956/models/model_pr1956.h5'}    #26-28
 
 GPUNum=${GPUNum:-0}
 

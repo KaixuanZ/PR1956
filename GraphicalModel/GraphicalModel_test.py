@@ -44,10 +44,10 @@ class Graph(object):
         return self.cls
 
 def GetMappingDict(f=0):    # f=0: cls2GT ; f=1: GT2cls
-    with open('../../results/personnel-records/1954/labeled_data/IdNameMap.json') as jsonfile:
+    with open('../../results/personnel-records/1956/labeled_data/IdNameMap.json') as jsonfile:
         Id2Name_cls = json.load(jsonfile)
     #print(Id2Name_cls)
-    with open('../../results/personnel-records/1954/labeled_data/Id2Name_label.csv') as csv_file:
+    with open('../../results/personnel-records/1956/labeled_data/Id2Name_label.csv') as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
         line_count = 0
         Name2Id_GT={}
@@ -68,7 +68,7 @@ def TestAcc(graph):
     print("test accuracy")
     #compute Confusion Mat and acc for each class
     cls2GT=GetMappingDict() # mapping from classification result to ground truth
-    GT = GetGroundTruth('../../results/personnel-records/1954/labeled_data/testset_pr1954.csv')
+    GT = GetGroundTruth('../../results/personnel-records/1956/labeled_data/testset_pr1956.csv')
     ConfMat=np.zeros([len(cls2GT),len(cls2GT)])
     cls,acc = graph.CNNClassification(),0
     import pdb;
@@ -90,7 +90,7 @@ def TestAcc(graph):
     print('classification accuracy after applying graphcial model is : ', acc/len(cls))
     print('confusion matrix: \n',ConfMat)
 
-def GetGroundTruth(path,RemoveBlank=False):
+def GetGroundTruth(path):
     with open(path) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
         line_count = 0
@@ -99,11 +99,7 @@ def GetGroundTruth(path,RemoveBlank=False):
             if line_count == 0:
                 line_count += 1
             elif row[0] is not '':
-                if RemoveBlank:
-                    if row[0] is not '0':
-                        GroundTruth.append(int(row[0]))
-                else:
-                    GroundTruth.append(int(row[0]))
+                GroundTruth.append(int(row[0]))
             else:
                 return GroundTruth
         return GroundTruth
@@ -111,12 +107,13 @@ def GetGroundTruth(path,RemoveBlank=False):
 def EstTransMat(method):
     #transition matrix labeled by human knowledge. array[i][j]=1 : transition from class i to class j is possible
 
-    Dim=5
-    manual = [[1, 0, 0, 1, 1],  # 0  address
-             [1, 1, 0, 0, 0],  # 1   company
-             [0, 1, 1, 0, 0],  # 2   personnel
-             [0, 0, 1, 1, 1],  # 3   variable
-             [0, 0, 1, 1, 1], ]  # 4 value
+    Dim = 6
+    manual = [[1, 0, 0, 0, 0, 1],  # 0  address
+              [1, 1, 0, 0, 0, 0],  # 1   company
+              [0, 0, 1, 1, 0, 1],  # 2   personnel
+              [0, 0, 0, 1, 0, 1],  # 3   table
+              [0, 1, 1, 0, 1, 1],  # 4   value
+              [0, 1, 1, 1, 1, 1], ]  # 5 variable
 
     if method==DEFAULT:
         return [[1/Dim]*Dim]*Dim
@@ -126,7 +123,7 @@ def EstTransMat(method):
         return manual
     elif method==AUTO:
         count=np.ones([Dim,Dim])
-        labels=GetGroundTruth('../../results/personnel-records/1954/labeled_data/trainset_pr1954.csv',RemoveBlank=False)
+        labels=GetGroundTruth('../../results/personnel-records/1956/labeled_data/trainset_pr1956.csv')
         GT2cls=GetMappingDict(1)
         for i in range(len(labels)-1):
             count[GT2cls[labels[i]]][GT2cls[labels[i+1]]]+=1
@@ -141,7 +138,7 @@ def main(path):
 
     graph=Graph()
     #get values on nodes
-    file='pr1954_p0837_1.json'
+    file='pr1956_f0127_2_1'
 
 
     with open(os.path.join(path,file)) as jsonfile:

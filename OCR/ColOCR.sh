@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 
-declare -a Sections=("bank" "credit_union" "firm" "official_office" "supplement")
+#declare -a Sections=("bank" "credit_union" "firm" "official_office" "supplement")
 
-ImgPath=${ImgPath:-'../../results/personnel-records/1954/seg/'}
+declare -a Sections=("firm" "supplement")
 
-OutputPath=${OutputPath:-'../../results/personnel-records/1954/ocr/gcv_output/'}
+ImgPath=${ImgPath:-'../../results/personnel-records/1956/seg/'}
+
+OutputPath=${OutputPath:-'../../results/personnel-records/1956/ocr/gcv_output/'}
 
 read -p "Do you want to remove previous output of $type images in $OutputPath? (y/n) " -n 1 -r
 echo -e "\n"

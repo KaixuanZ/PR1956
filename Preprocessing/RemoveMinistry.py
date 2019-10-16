@@ -22,11 +22,6 @@ def Binarization(img,patchSize=15,threshold=12):
     img_b = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, patchSize, threshold)
     return img_b
 
-def GetImgFilename(jsonfile):
-    book, p, _ = jsonfile.split('.')[0].split('_')
-    p = p[0] + str(int(p[1:]))
-    return book + '_' + p  + '.png'
-
 def RemoveMinistry(img,colRects):
     rect=Rect.CombineRects(colRects[0],colRects[1])
     ROI=[list(rect[0]),list(rect[1]),rect[2]]
@@ -70,7 +65,7 @@ def main(Colfilename,args):
         colRects=json.load(file)
 
     if len(colRects)>2 and abs(GetColHeight(colRects[1])-GetColHeight(colRects[2]))<1:   #haven't remove Ministry
-        imgpath = os.path.join(args.imgdir, GetImgFilename(Colfilename))
+        imgpath = os.path.join(args.imgdir, '_'.join(Colfilename.split('_')[:-1])+'.png')
         img = cv2.imread(imgpath, 0)
         if RemoveMinistry(img,colRects):
             print("remove Minsitry for "+Colfilename)
@@ -93,7 +88,7 @@ if __name__ == '__main__':
 
     clean_names = lambda x: [i for i in x if i[0] != '.']
     Colfilenames = os.listdir(args.coldir)
-    Colfilenames = sorted(clean_names(Colfilenames))
+    Colfilenames = sorted(clean_names(Colfilenames))[-300:]
 
     args = [args] * len(Colfilenames)
 

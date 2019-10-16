@@ -80,7 +80,7 @@ class DataGenerator(keras.utils.Sequence):
 
 def SaveIdNameMap(target_names,output_path):
     id_name_map = dict(zip(range(len(target_names)), target_names))
-    outputfile=os.path.join(output_path,'labeled_data','IdNameMap.json')
+    outputfile=os.path.join(output_path,'../labeled_data','IdNameMap.json')
     with open(outputfile, 'w') as outfile:
         json.dump(id_name_map, outfile)
     print('writing id-name map to '+outputfile)
@@ -125,7 +125,7 @@ def main(trainset,weight_path,output_path):
 
     #model
     base_model = keras.applications.mobilenet.MobileNet(input_shape=(height, width, 1), alpha=1.0,
-                                            depth_multiplier=1, dropout=1e-2, include_top=True,
+                                            depth_multiplier=1, dropout=0.5, include_top=True,
                                             weights=weight_path, classes=7)
 
     with tf.name_scope("output"):
@@ -143,7 +143,7 @@ def main(trainset,weight_path,output_path):
     model.summary()
     #import pdb;pdb.set_trace()
 
-    mc = keras.callbacks.ModelCheckpoint(output_path+'/models/weights{epoch:02d}.h5',
+    mc = keras.callbacks.ModelCheckpoint(output_path+'/weights{epoch:02d}.h5',
                                              save_weights_only=True, period=1)
 
     reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor='val_acc', factor=0.0050, patience=6, mode='auto', cooldown=0, min_lr=0)

@@ -242,14 +242,9 @@ def Binarization(img,patchSize=15,threshold=12):
     img_b = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, patchSize, threshold)
     return img_b
 
-def GetImgFilename(jsonfile):
-    book, p, _ = jsonfile.split('.')[0].split('_')
-    p = p[0] + str(int(p[1:]))
-    return book + '_' + p + '.png'
-
 def main(colRectJson,args):
     print("processing "+colRectJson)
-    imgpath = os.path.join(args.imgdir,GetImgFilename(colRectJson))
+    imgpath = os.path.join(args.imgdir,'_'.join(colRectJson.split('_')[:-1])+'.png')
 
     page=Page(imgpath,colRectJson)
 

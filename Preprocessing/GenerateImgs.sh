@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
 
-declare -a Sections=("bank" "credit_union" "firm" "official_office" "supplement")
+#declare -a Sections=("bank" "credit_union" "firm" "official_office" "supplement")
+declare -a Sections=( "firm" "supplement")
 
-ImgPath=${ImgPath:-'../../raw_data/personnel-records/1954/scans/'}
+ImgPath=${ImgPath:-'../../raw_data/personnel-records/1956/scans/'}
 
-RectPath=${RectPath:-'../../results/personnel-records/1954/seg/'}
-
-OutputPath=${OutputPath:-'../../results/personnel-records/1954/seg/'}
+OutputPath=${OutputPath:-'../../results/personnel-records/1956/seg/'}
 
 type=${type:-'row'}
 
@@ -23,7 +22,7 @@ for section in "${Sections[@]}"; do
 
     ImgPath_section="$ImgPath$section"
     OutputPath_section="$OutputPath$section/${type}_img"
-    RectPath_section="$RectPath$section/${type}_rect"
+    RectPath_section="$OutputPath$section/${type}_rect"
 
     if test "$DELETE" == 'Y'
     then

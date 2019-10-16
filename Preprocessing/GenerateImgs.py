@@ -8,17 +8,14 @@ import sys
 sys.path.append('../')
 import Rect
 
-def GetImgFilename(jsonfile):
-    book, p, _ = jsonfile.split('.')[0].split('_')[0:3]
-    p = p[0] + str(int(p[1:]))
-    return book + '_' + p + '.png'
-
 def main(rect_json, args):
     if 'row' in args.rectdir:
         row=True
+    else:
+        row=False
     print('processing ' + rect_json)
 
-    imgpath = os.path.join(args.imgdir, GetImgFilename(rect_json))
+    imgpath = os.path.join(args.imgdir, '_'.join(rect_json.split('_')[:-1])+ '.png')
     img=cv2.imread(imgpath)
 
 
@@ -36,14 +33,19 @@ def main(rect_json, args):
             i = 0
             for rect in rects[key]:
                 warped, _ = Rect.CropRect(img, rect)
-                cv2.imwrite(os.path.join(outputdir, rect_json.split('.')[0] +'_' + key + '_' + str(i).zfill(3) + '.png'), warped)
+                filename = rect_json.split('.')[:-1]
+                filename.append(str(key))
+                filename.append(str(i).zfill(3))
+                cv2.imwrite(os.path.join(outputdir, '_'.join(filename)+ '.png'), warped)
                 i+=1
     else:       #output col
         i = 0
         for rect in rects:
             #import pdb;pdb.set_trace()
             warped, _ = Rect.CropRect(img, rect)
-            cv2.imwrite(os.path.join(outputdir,rect_json.split('.')[0]+'_'+str(i).zfill(1)+'.png'),warped)
+            filename=rect_json.split('.')[:-1]
+            filename.append(str(i))
+            cv2.imwrite(os.path.join(outputdir,'_'.join(filename) + '.png'),warped)
             i+=1
 
 if __name__ == '__main__':

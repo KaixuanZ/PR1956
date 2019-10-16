@@ -4,19 +4,19 @@ import cv2
 import csv
 import argparse
 #import pdb; pdb.set_trace()
-
+clean_names = lambda x: [i for i in x if i[0] != '.']
 def OutputImg(img,outputpath,label):
     filepath=os.path.join(outputpath,label)
     if not os.path.isdir(filepath):
         os.mkdir(filepath)
-    n=str(len(os.listdir(filepath)))
+    n=str(len(clean_names(os.listdir(filepath))))
     outpath=os.path.join(filepath,n.zfill(5)+'.png')
     cv2.imwrite(outpath,img)
     print("saving image to "+outpath)
 
 def ReadImg(imgpath,row):
-    filename='pr1954_p'+row[1].zfill(4)+'_'+row[2]
-    filepath=os.path.join(imgpath ,filename ,filename + '_' + row[3] + '_' + str(row[4]).zfill(3)+'.png')
+    filename='pr1956_f'+row[1].zfill(4)+'_'+row[2]+'_'+row[3]
+    filepath=os.path.join(imgpath ,filename ,filename + '_' + row[4] + '_' + str(row[5]).zfill(3)+'.png')
     img=cv2.imread(filepath,0)  #gray img (width height)
     return img
 

@@ -4,19 +4,11 @@ import numpy as np
 import os
 from joblib import Parallel, delayed
 import argparse
-import multiprocessing
 import sys
 sys.path.append('../')
 import Rect
 
 #input original scanned img and ROI (text region) bbox, output column bbox
-
-def GetImgFilename(jsonfile):
-    #import pdb;pdb.set_trace()
-    book, p, sp = jsonfile.split('.')[0].split('_')
-    p = p[0] + str(int(p[1:]))
-    return book + '_' + p  + '.png'
-
 def ColIndex(img_b,ColWHRatio=2/15):
     '''
     :param img_b: binarized ROI image
@@ -53,11 +45,13 @@ def main(ROIfilename,imgdir,ROIdir,outputdir):
     :return: rect(s) of columns
     seperate ROI into several columns
     '''
+    if "pr1956_f0161_3_1" not in ROIfilename:
+        return 0
     threshold1=10  #threshold for binarization
     threshold2=190 #threshold for deciding if the last col has content
     print("processing "+ROIfilename)
 
-    imgfilename=GetImgFilename(ROIfilename)
+    imgfilename='_'.join(ROIfilename.split('_')[:-1])+'.png'
     img = cv2.imread(os.path.join(imgdir,imgfilename), 0)
 
     with open(os.path.join(ROIdir,ROIfilename)) as file:

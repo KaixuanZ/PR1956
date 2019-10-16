@@ -2,7 +2,7 @@
 
 ImgDir=${ImgDir:-'../../raw_data/personnel-records/1956/scans/supplement'}
 
-JsonDir=${JsonDir:-'../../results/personnel-records/1956/seg/supplement/ROI_rect'}
+JsonDir=${JsonDir:-'../../results/personnel-records/1956/seg/supplement/row_rect'}
 
 OutputDir=${OutputDir:-'../../results/personnel-records/1956/visualization'}
 
@@ -19,8 +19,8 @@ python3 RenderBBox.py --imgdir=$ImgDir --jsondir=$JsonDir --outputdir=$OutputDir
 
 
 
-#ImgDir='../../raw_data/personnel-records/1956/scans/supplement'
+ImgDir='../../raw_data/personnel-records/1956/scans/firm'
 
-#JsonDir='../../results/personnel-records/1956/seg/supplement/page_rect'
+JsonDir='../../results/personnel-records/1956/seg/firm/row_rect'
 
-#python3 RenderBBox.py --imgdir=$ImgDir --jsondir=$JsonDir --outputdir=$OutputDir
+python3 RenderBBox.py --imgdir=$ImgDir --jsondir=$JsonDir --outputdir=$OutputDir

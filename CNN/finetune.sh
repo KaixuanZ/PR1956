@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 #finetune the pre-trained model (with teikoku1924) with data of teikoku1957
 
-TrainSet=${TrainSet:-'../../results/personnel-records/1954/trainset/'}
+TrainSet=${TrainSet:-'../../results/personnel-records/1956/trainset/'}
 
-WeightPath=${WeightPath:-'../../results/personnel-records/1954/models/pr1954.h5'}
+WeightPath=${WeightPath:-'../../results/personnel-records/1956/models/pr1956.h5'}
 
-OutputPath=${OutputPath:-'../../results/personnel-records/1954/'}
+OutputPath=${OutputPath:-'../../results/personnel-records/1956/models/'}
 
 GPUNum=${GPUNum:-0}
 

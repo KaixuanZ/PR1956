@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 
-ImgPath=${ImgPath:-'../../raw_data/personnel-records/1954/scans/firm'}
 
-ColPath=${ColPath:-'../../results/personnel-records/1954/seg/firm/col_rect'}
+ImgPath=${ImgPath:-'../../raw_data/personnel-records/1956/scans/firm'}
 
-OutputPath=${OutputPath:-'../../results/personnel-records/1954/seg/firm/col_rect_wo_ministry'}
+ColPath=${ColPath:-'../../results/personnel-records/1956/seg/firm/col_rect'}
+
+OutputPath=${OutputPath:-'../../results/personnel-records/1956/seg/firm/col_rect_wo_ministry'}
 
 read -p "Do you want to remove previous output in $OutputPath? (y/n) " -n 1 -r
 echo -e "\n"

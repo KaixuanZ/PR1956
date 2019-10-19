@@ -35,7 +35,7 @@ class Page(object):
             self.FilenameToKey(page_filename)
 
     def FilenameToKey(self, filename):
-        self.page_index['book'], self.page_index['page'], self.page_index['subpage']= filename.split('.')[0].split('_')
+        self.page_index['book'], self.page_index['file'], self.page_index['subfile'],self.page_index['page']= filename.split('.')[0].split('_')
 
     def SetCols(self):
         row_nums=[0]
@@ -54,8 +54,8 @@ class Page(object):
 
     def ToDataFrame(self):
         #reshape inforamtion of this page to dataframe
-        label=['book', 'page', 'subpage']
-        val=[self.page_index['book'],self.page_index['page'],self.page_index['subpage']]
+        label=[*self.page_index.keys()]
+        val=[*self.page_index.values()]
         df=[]
         for col in self.cols:
             df.append(col.ToDataFrame(val,label))
@@ -206,7 +206,10 @@ def assign_document_word_to_row(word, rows):
         #if the word has no intersection with any row img, assign it to closest row_img
         index=dists.index(min(dists))
     rows[index].words.append(MessageToDict(word))
-    rows[index].AOIs.append(max_area / word_rect[1][0] / word_rect[1][1])
+    try:
+        rows[index].AOIs.append(max_area / word_rect[1][0] / word_rect[1][1])
+    except: #   0/0
+        rows[index].AOIs.append(0)
 
 def main(page_index, args):
     '''
@@ -217,8 +220,8 @@ def main(page_index, args):
     print("processing "+page_index)
 
     #read in image
-    book,page,_ = page_index.split('_')
-    imgfile=book+"_p"+str(int(page[1:]))+".png"
+    #import pdb;pdb.set_trace()
+    imgfile='_'.join(page_index.split('_')[:-1])+'.png'
     img=cv2.imread(os.path.join(args.img_dir,imgfile),0)
 
     #get ocr json filenames
@@ -228,7 +231,6 @@ def main(page_index, args):
     cls_json = os.path.join(args.row_cls_dir, page_index + '.json')
     with open(cls_json) as jsonfile:
         cls = json.load(jsonfile)
-    cls = cls["name"]
 
     #get col_rects
     with open(os.path.join(args.col_rect_dir,page_index+'.json')) as jsonfile:
@@ -260,5 +262,5 @@ if __name__ == '__main__':
         os.mkdir(args.output_dir)
         print('creating directory ' + args.output_dir)
 
-    page_index = sorted(clean_names(os.listdir(args.OCR_dir)))
+    page_index = sorted(clean_names(os.listdir(args.OCR_dir)))[917:]
     Parallel(n_jobs=-1)(map(delayed(main), page_index, [args]*len(page_index)))

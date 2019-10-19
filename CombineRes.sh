@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
 
 #declare -a Sections=("firm" "bank" "credit_union" "official_office" "supplement")
-declare -a Sections=("supplement")
+declare -a Sections=("firm")
 
-ImgPath=${ImgPath:-'../raw_data/personnel-records/1954/scans/'}
+ImgPath=${ImgPath:-'../raw_data/personnel-records/1956/scans/'}
 
-ColRectPath=${ColRectPath:-'../results/personnel-records/1954/seg/'}
+ColRectPath=${ColRectPath:-'../results/personnel-records/1956/seg/'}
 
-RowRectPath=${RowRectPath:-'../results/personnel-records/1954/seg/'}
+RowRectPath=${RowRectPath:-'../results/personnel-records/1956/seg/'}
 
-RowClsPath=${RowClsPath:-'../results/personnel-records/1954/cls/'}
+RowClsPath=${RowClsPath:-'../results/personnel-records/1956/cls/CRF/'}
 
-OCRPath=${OCRPath:-'../results/personnel-records/1954/ocr/gcv_output/'}
+OCRPath=${OCRPath:-'../results/personnel-records/1956/ocr/gcv_output/'}
 
-OutputPath=${OutputPath:-'../results/personnel-records/1954/res/csv/'}
+OutputPath=${OutputPath:-'../results/personnel-records/1956/res/csv/'}
 
 read -p "Do you want to remove previous output of probability in $OutputPath? (y/n) " -n 1 -r
 echo -e "\n"

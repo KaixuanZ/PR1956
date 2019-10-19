@@ -44,11 +44,6 @@ def draw_boxes(image, boxes):
         cv2.drawContours(image, [box], 0, color, 3)
     return image
 
-def GetImgFilename(string):
-    book, p , _ = string.split('.')[0].split('_')
-    p = p[0] + str(int(p[1:]))
-    return book + '_' + p + '.png'
-
 def get_document_boxes(ocr_file, feature):
     """Returns document bounds given an image."""
     boxes = []
@@ -79,8 +74,10 @@ def get_document_boxes(ocr_file, feature):
 
 
 def render_doc_text(col_rect, args):
-    #import pdb;pdb.set_trace()
-    image = cv2.imread(os.path.join(args.img_path,GetImgFilename(col_rect)))
+
+    image = cv2.imread(os.path.join(args.img_path,'_'.join(col_rect.split('_')[:-1])+'.png'))
+    import pdb;
+    pdb.set_trace()
     col_rect_dir=col_rect.split('.')[0]
     gcv_outputs=sorted(clean_names(os.listdir(os.path.join(args.gcv_dir,col_rect_dir))))
 
@@ -117,4 +114,4 @@ if __name__ == '__main__':
     clean_names = lambda x: [i for i in x if i[0] != '.']
     col_rects=sorted(clean_names(os.listdir(args.rect_dir)))[::500]
 
-    Parallel(n_jobs=1)(map(delayed(render_doc_text), col_rects, [args] * len(col_rects)))
+    Parallel(n_jobs=-1)(map(delayed(render_doc_text), col_rects, [args] * len(col_rects)))

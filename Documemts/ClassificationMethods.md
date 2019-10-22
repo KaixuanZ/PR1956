@@ -20,20 +20,14 @@ Input: observation sequence X
 
 Output: classification sequence Y
 
-Emission Score U(x_k, y_k): how likely is class y given observation x
+Emission Score U(x_k, y_k): how likely is y_k given observation x_k
 
 Transition Score T(y_k, y_{k+1}): how likely is class y_k followed by class y_{k+1}
 
 Maximize \prod U_i*T_i
  
-### Parameters
-U(x, y) is given by CNN. T(y_k, y_{k+1}) is manually setup
- 
-### Algorithm
-\prod U_i*T_i can be maximized by Viterbi algorithm
- 
 ### Implementation
-/GraphicalModel/GraphicalModel.py and /GraphicalModel/GraphicalModel.sh
+/GraphicalModel/CRF.py and /GraphicalModel/CRF.sh (use [sklearn-crfsuite](https://sklearn-crfsuite.readthedocs.io/en/latest/) package)
 
 ## Dynamic String Warping
 

@@ -6,7 +6,7 @@ This project is mainly based on our NeurIPS 2019 workshop paper [Information Ext
 
 #### `Documents/`
 
-Files explaining the methods of [preprocessing](Documemts/PreprocessingMethods.md) and [classification](Documemts/PreprocessingMethods.md)
+Files explaining the methods of [preprocessing](Documemts/PreprocessingMethods.md) and [classification](Documemts/ClassificationMethods.md)
 
 #### `Visualization/`
 

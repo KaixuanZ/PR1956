@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
-declare -a Sections=("supplement" "firm")
+declare -a Sections=("firm" "supplement")
 
-InputPath=${InputPath:-'../../raw_data/personnel-records/1956/scans/'}
+InputPath=${InputPath:-'../../results/personnel-records/1956/seg/'}
 
-OutputPath=${OutputPath:-'../../results/personnel-records/1956/seg/'}
+ClsPath=${ClsPath:-'../../results/personnel-records/1956/cls/CRF/'}
 
-read -p "Do you want to remove previous output of probability in $OutputPath? (y/n) " -n 1 -r
+read -p "Do you want to remove previous output in $InputPath/section/col_img_modified? (y/n) " -n 1 -r
 echo -e "\n"
 DELETE="N"
 if [[ $REPLY =~ ^[Yy]$ ]]
@@ -16,9 +16,11 @@ fi
 
 for section in "${Sections[@]}"; do
 
-    InputPath_section="$InputPath$section"
-    ColPath_section="$OutputPath$section/col_rect"
-    OutputPath_section="$OutputPath$section/row_rect"
+    ColImgPath_section="$InputPath$section/col_img"
+    ClsPath_section="$ClsPath$section"
+    ColRectPath_section="$InputPath$section/col_rect"
+    RowRectPath_section="$InputPath$section/row_rect"
+    OutputPath_section="$InputPath$section/col_img_modified"
 
     if test "$DELETE" == 'Y'
     then
@@ -29,6 +31,6 @@ for section in "${Sections[@]}"; do
 
     mkdir $OutputPath_section
 
-    python3 Col2Row.py --imgdir=$InputPath_section --coldir=$ColPath_section --outputdir=$OutputPath_section  # 2>&1 | tee "../../results/personnel-records/1956/log/log_Col2Row_$section.txt"
+    python3 MovingNames.py --imgdir=$ColImgPath_section --clsdir=$ClsPath_section --colrectdir=$ColRectPath_section --rowrectdir=$RowRectPath_section --outputdir=$OutputPath_section  # 2>&1 | tee "../../results/personnel-records/1956/log/log_Col2Row_$section.txt"
 
 done

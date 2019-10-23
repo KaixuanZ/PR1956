@@ -8,6 +8,7 @@ sys.path.append('../')
 import Rect
 from pythonRLSA import rlsa
 from scipy import signal
+from joblib import Parallel, delayed
 
 def SymbolDetection(mask,RLSA_thr,margin_thr=10):
     '''
@@ -37,22 +38,25 @@ def Binarization(img,patchSize=15,threshold=12):
     img_b = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, patchSize, threshold)
     return img_b
 
-def ExpandRect(rect):
+def ExpandRect(rect,threshold=12):
     rect = [list(rect[0]), list(rect[1]), rect[2]]
 
     if rect[1][0] > rect[1][1]:
-        rect[1][1] = rect[1][1] +10
+        rect[1][1] = rect[1][1] +threshold
     else:
-        rect[1][0] = rect[1][0] +10
+        rect[1][0] = rect[1][0] +threshold
 
     return tuple(rect)
 
 
 def main(page,args=None):
+    print("processing "+page)
     #read in data
-    cls_file='/home/ubuntu/results/personnel-records/1956/cls/CRF/firm/pr1956_f0047_0_1.json'
-    col_rect_file='/home/ubuntu/results/personnel-records/1956/seg/firm/col_rect/pr1956_f0047_0_1.json'
-    row_rect_file='/home/ubuntu/results/personnel-records/1956/seg/firm/row_rect/pr1956_f0047_0_1.json'
+    cls_file=os.path.join(args.clsdir,page+'.json')
+    col_rect_file=os.path.join(args.colrectdir,page+'.json')
+    row_rect_file=os.path.join(args.rowrectdir,page+'.json')
+
+    bg_img = cv2.imread('/home/ubuntu/results/personnel-records/1956/seg/background.png')
 
     with open(col_rect_file) as file:
         col_rects = json.load(file)
@@ -62,66 +66,83 @@ def main(page,args=None):
 
     with open(cls_file) as file:
         cls = json.load(file)
-    cls=cls[:len(row_rects['0'])]
 
-    tmp=[]
     for key in row_rects.keys():
-        tmp+=row_rects[key]
-    row_rects=tmp
+        row_rects_col = row_rects[key]
+        col_img=cv2.imread(os.path.join(args.imgdir,page,page+'_'+key+'.png'))
 
-    bg_img=cv2.imread('/home/ubuntu/results/personnel-records/1956/seg/background.png')
+        col_img_b=Binarization(col_img)
+        RLSA_thr=50
 
-    col_img=cv2.imread('/home/ubuntu/results/personnel-records/1956/seg/firm/col_img/pr1956_f0047_0_1/pr1956_f0047_0_1_0.png')
+        _ , M_col = Rect.CropRect(col_img_b, col_rects[int(key)])
+        for i in range(len(row_rects_col)):
+            if cls[i]=='personnel':
+                #detect symbols
+                row_img_b , _ =Rect.CropRect(col_img_b, Rect.RectOnDstImg(row_rects_col[i],M_col))
+                count=np.sum(row_img_b/255,axis=0)
+                count=signal.medfilt(count, 5)
+                _, count=cv2.threshold(count, 3, 255, cv2.THRESH_BINARY_INV)
+                count=rlsa.rlsa(count.T, True, False, RLSA_thr)
 
-    col_img_b=Binarization(col_img)
-    RLSA_thr=50
+                symbol_intervals=SymbolDetection(255-count[-1],RLSA_thr)
 
-    _ , M_col = Rect.CropRect(col_img_b, col_rects[0])
-    for i in range(len(cls)):
-        if cls[i]=='personnel':
-            #detect symbols
-            row_img_b , _ =Rect.CropRect(col_img_b, Rect.RectOnDstImg(row_rects[i],M_col))
-            count=np.sum(row_img_b/255,axis=0)
-            count=signal.medfilt(count, 5)
-            _, count=cv2.threshold(count, 3, 255, cv2.THRESH_BINARY_INV)
-            count=rlsa.rlsa(count.T, True, False, RLSA_thr)
+                #decide if we need to move symbols closer
+                if symbol_intervals:
+                    if symbol_intervals[-1][0]>0.6*row_img_b.shape[1]:
+                        #copy the region of FName (src)
+                        row_img, M_col2row = Rect.CropRect(col_img, Rect.RectOnDstImg(ExpandRect(row_rects_col[i]),M_col))
+                        src_img=row_img[:,symbol_intervals[-2][0]:symbol_intervals[-2][1]].copy()
 
-            symbol_intervals=SymbolDetection(255-count[-1],RLSA_thr)
+                        # t is the distance between first and last name
+                        t = symbol_intervals[-1][0] - symbol_intervals[-2][1]
+                        M_row2col = np.linalg.inv(M_col2row)
 
-            #decide if we need to move symbols closer
-            if symbol_intervals:
-                if symbol_intervals[-1][0]>0.6*row_img_b.shape[1]:
-                    print(i)
-                    #copy the region of FName (src)
-                    row_img, M_col2row = Rect.CropRect(col_img, Rect.RectOnDstImg(ExpandRect(row_rects[i]),M_col))
-                    src_img=row_img[:,symbol_intervals[-2][0]:symbol_intervals[-2][1]].copy()
+                        # mask w.r.t M_row2col
+                        roi_pts = np.array([[0, 0],
+                                [src_img.shape[1], 0],
+                                [src_img.shape[1], src_img.shape[0]],
+                                [0, src_img.shape[0]]], dtype="float32")
+                        roi_pts = Rect.PtsOnDstImg(roi_pts, M_row2col)
+                        roi_pts = roi_pts - np.min(roi_pts,axis=0)
+                        height,width = np.max(roi_pts, axis=0)[::-1]
+                        mask = np.zeros([min(height,src_img.shape[0]),min(width,src_img.shape[1])])
+                        roi_mask=cv2.fillConvexPoly(mask, roi_pts, 255)
 
-                    # t is the distance between first and last name
-                    t = symbol_intervals[-1][0] - symbol_intervals[-2][1]
-                    M_row2col = np.linalg.inv(M_col2row)
+                        # fill the region of FName with random sampled background
+                        center = [[np.median(symbol_intervals[-2]), row_img.shape[0] / 2]]
+                        center = tuple(Rect.PtsOnDstImg(center,M_row2col,False)[-1])
+                        x , y = np.random.randint(bg_img.shape[0]-roi_mask.shape[0],size=1)[0], np.random.randint(bg_img.shape[1]-roi_mask.shape[1],size=1)[0]
+                        col_img = cv2.seamlessClone(bg_img[x:x+roi_mask.shape[0],y:y+roi_mask.shape[1]], col_img, roi_mask.astype(np.uint8), center, cv2.NORMAL_CLONE)
 
-                    # mask w.r.t M_row2col
-                    roi_pts = np.array([[0, 0],
-                            [src_img.shape[1], 0],
-                            [src_img.shape[1], src_img.shape[0]],
-                            [0, src_img.shape[0]]], dtype="float32")
-                    roi_pts = Rect.PtsOnDstImg(roi_pts, M_row2col)
-                    roi_pts = roi_pts - np.min(roi_pts,axis=0)
-                    height,width = np.max(roi_pts, axis=0)[::-1]
-                    mask = np.zeros([min(height,src_img.shape[0]),min(width,src_img.shape[1])])
-                    roi_mask=cv2.fillConvexPoly(mask, roi_pts, 255)
+                        #paste the src region to target region
+                        center = [[np.median(symbol_intervals[-2]) + t, row_img.shape[0] / 2]]
+                        center = tuple(Rect.PtsOnDstImg(center, M_row2col, False)[-1])
+                        col_img = cv2.seamlessClone(src_img, col_img, roi_mask.astype(np.uint8), center, cv2.NORMAL_CLONE)
 
-                    # fill the region of FName with background
-                    center = [[np.median(symbol_intervals[-2]), row_img.shape[0] / 2]]
-                    center = tuple(Rect.PtsOnDstImg(center,M_row2col,False)[-1])
-                    col_img = cv2.seamlessClone(bg_img, col_img, roi_mask.astype(np.uint8), center, cv2.NORMAL_CLONE)
+        cls=cls[len(row_rects_col):]
 
-                    #paste the src region to target region
-                    center = [[np.median(symbol_intervals[-2]) + t, row_img.shape[0] / 2]]
-                    center = tuple(Rect.PtsOnDstImg(center, M_row2col, False)[-1])
-                    col_img = cv2.seamlessClone(src_img, col_img, roi_mask.astype(np.uint8), center, cv2.NORMAL_CLONE)
+        if not os.path.isdir(os.path.join(args.outputdir,page)):
+            os.mkdir(os.path.join(args.outputdir,page))
+            print('creating directory ' + os.path.join(args.outputdir,page))
+        cv2.imwrite(os.path.join(args.outputdir,page,page+'_'+key+'.png'),col_img)
 
-    cv2.imwrite('tmp_modified_col.png',col_img)
+if __name__ == '__main__':
+    # construct the argument parse and parse the arguments
+    parser = argparse.ArgumentParser(description='Page Detection')
+    parser.add_argument('--imgdir', type=str)
+    parser.add_argument('--clsdir', type=str)
+    parser.add_argument('--colrectdir', type=str)
+    parser.add_argument('--rowrectdir', type=str)
+    parser.add_argument('--outputdir', type=str)
+    args = parser.parse_args()
 
-main()
-# import pdb;pdb.set_trace()
+    #create output file
+    if not os.path.isdir(args.outputdir):
+        os.mkdir(args.outputdir)
+        print('creating directory ' + args.outputdir)
+
+    clean_names = lambda x: [i for i in x if i[0] != '.']
+
+    pages = sorted(clean_names(os.listdir(args.imgdir)))
+    #import pdb;pdb.set_trace()
+    Parallel(n_jobs=-1)(map(delayed(main), pages,[args]*len(pages)))

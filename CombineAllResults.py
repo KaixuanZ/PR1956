@@ -77,12 +77,13 @@ class Col(object):
         self.cls=cls
         self.col_index=str(col_index)
 
-    def SetRows(self):
+    def SetRows(self,OCR=True):
         for i in range(len(self.cls)):
             #row rect on col img coordinate
             row_rect = Rect.RectOnSrcImg(cv2.boxPoints(tuple(self.row_rects[i])), np.linalg.inv(self.col_M))
             self.rows.append(Row(row_rect,self.cls[i],i))
-        self.AssignDocumentWordsToRow()
+        if OCR:
+            self.AssignDocumentWordsToRow()
 
     def AssignDocumentWordsToRow(self):
         '''

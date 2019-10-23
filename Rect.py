@@ -28,15 +28,18 @@ def RectOnDstImg(box, M_src2dst):
     pts=PtsOnDstImg(cv2.boxPoints(tuple(box)), M_src2dst)
     return cv2.minAreaRect(pts)
 
-def PtsOnDstImg(pts, M_src2dst):
+def PtsOnDstImg(pts, M_src2dst, orderPts=True):
     #Given pts on src img, and transformation M from src to dst, return the pts on dst img.
+
     pts = np.array(pts)
     pts = np.concatenate((pts, np.ones([pts.shape[0], 1])), axis=1)
     # box on the dst img
     pts = np.dot(M_src2dst, pts.T).T
     pts = pts / pts[:, 2, None]
     pts = np.int0(pts[:,0:2]+0.5)
-    return OrderPoints(pts)
+    if orderPts:
+        return OrderPoints(pts)
+    return pts
 
 def OrderPoints(pts):
     # sort the points based on their x-coordinates
@@ -81,5 +84,4 @@ def CropRect(img, rect):
 
     # directly warp the rotated rectangle to get the straightened rectangle
     warped = cv2.warpPerspective(img, M, (width+1, height+1))
-    #import pdb;pdb.set_trace()
     return warped, M

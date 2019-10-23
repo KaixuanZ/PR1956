@@ -38,7 +38,6 @@ def Binarization(img,patchSize=15,threshold=12):
     return img_b
 
 def ExpandRect(rect):
-    #scale width by n
     rect = [list(rect[0]), list(rect[1]), rect[2]]
 
     if rect[1][0] > rect[1][1]:
@@ -49,33 +48,32 @@ def ExpandRect(rect):
     return tuple(rect)
 
 
-cls_file='/home/ubuntu/results/personnel-records/1956/cls/CRF/firm/pr1956_f0047_0_1.json'
-col_rect_file='/home/ubuntu/results/personnel-records/1956/seg/firm/col_rect/pr1956_f0047_0_1.json'
-row_rect_file='/home/ubuntu/results/personnel-records/1956/seg/firm/row_rect/pr1956_f0047_0_1.json'
+def main(page,args=None):
+    #read in data
+    cls_file='/home/ubuntu/results/personnel-records/1956/cls/CRF/firm/pr1956_f0047_0_1.json'
+    col_rect_file='/home/ubuntu/results/personnel-records/1956/seg/firm/col_rect/pr1956_f0047_0_1.json'
+    row_rect_file='/home/ubuntu/results/personnel-records/1956/seg/firm/row_rect/pr1956_f0047_0_1.json'
 
-with open(col_rect_file) as file:
-    col_rects = json.load(file)
+    with open(col_rect_file) as file:
+        col_rects = json.load(file)
 
-with open(row_rect_file) as file:
-    row_rects = json.load(file)
+    with open(row_rect_file) as file:
+        row_rects = json.load(file)
 
-with open(cls_file) as file:
-    cls = json.load(file)
-cls=cls[:len(row_rects['0'])]
+    with open(cls_file) as file:
+        cls = json.load(file)
+    cls=cls[:len(row_rects['0'])]
 
-tmp=[]
-for key in row_rects.keys():
-    tmp+=row_rects[key]
-row_rects=tmp
+    tmp=[]
+    for key in row_rects.keys():
+        tmp+=row_rects[key]
+    row_rects=tmp
 
-
-def main(args):
     bg_img=cv2.imread('/home/ubuntu/results/personnel-records/1956/seg/background.png')
 
     col_img=cv2.imread('/home/ubuntu/results/personnel-records/1956/seg/firm/col_img/pr1956_f0047_0_1/pr1956_f0047_0_1_0.png')
-    #import pdb;pdb.set_trace()
+
     col_img_b=Binarization(col_img)
-    cv2.imwrite('tmp_col.png',col_img)
     RLSA_thr=50
 
     _ , M_col = Rect.CropRect(col_img_b, col_rects[0])
@@ -85,28 +83,24 @@ def main(args):
             row_img_b , _ =Rect.CropRect(col_img_b, Rect.RectOnDstImg(row_rects[i],M_col))
             count=np.sum(row_img_b/255,axis=0)
             count=signal.medfilt(count, 5)
-
             _, count=cv2.threshold(count, 3, 255, cv2.THRESH_BINARY_INV)
-            #import pdb;pdb.set_trace()
-            count=count.T
-            rlsa.rlsa(count, True, False, RLSA_thr)
+            count=rlsa.rlsa(count.T, True, False, RLSA_thr)
 
             symbol_intervals=SymbolDetection(255-count[-1],RLSA_thr)
 
             #decide if we need to move symbols closer
-            #import pdb;pdb.set_trace()
             if symbol_intervals:
                 if symbol_intervals[-1][0]>0.6*row_img_b.shape[1]:
+                    print(i)
                     #copy the region of FName (src)
                     row_img, M_col2row = Rect.CropRect(col_img, Rect.RectOnDstImg(ExpandRect(row_rects[i]),M_col))
-                    M_row2col = np.linalg.inv(M_col2row)
-
                     src_img=row_img[:,symbol_intervals[-2][0]:symbol_intervals[-2][1]].copy()
 
                     # t is the distance between first and last name
                     t = symbol_intervals[-1][0] - symbol_intervals[-2][1]
+                    M_row2col = np.linalg.inv(M_col2row)
 
-                    # mask pts
+                    # mask w.r.t M_row2col
                     roi_pts = np.array([[0, 0],
                             [src_img.shape[1], 0],
                             [src_img.shape[1], src_img.shape[0]],
@@ -117,19 +111,17 @@ def main(args):
                     mask = np.zeros([min(height,src_img.shape[0]),min(width,src_img.shape[1])])
                     roi_mask=cv2.fillConvexPoly(mask, roi_pts, 255)
 
-                    #import pdb;pdb.set_trace()
                     # fill the region of FName with background
-                    center=[(int(symbol_intervals[-2][0]/2+symbol_intervals[-2][1]/2),int(row_img.shape[0]/2))]
-                    center=tuple(Rect.PtsOnDstImg(center,M_row2col,False)[-1])
+                    center = [[np.median(symbol_intervals[-2]), row_img.shape[0] / 2]]
+                    center = tuple(Rect.PtsOnDstImg(center,M_row2col,False)[-1])
                     col_img = cv2.seamlessClone(bg_img, col_img, roi_mask.astype(np.uint8), center, cv2.NORMAL_CLONE)
 
                     #paste the src region to target region
-                    center = [(int(symbol_intervals[-2][0] / 2 + symbol_intervals[-2][1] / 2 + t), int(row_img.shape[0] / 2))]
+                    center = [[np.median(symbol_intervals[-2]) + t, row_img.shape[0] / 2]]
                     center = tuple(Rect.PtsOnDstImg(center, M_row2col, False)[-1])
                     col_img = cv2.seamlessClone(src_img, col_img, roi_mask.astype(np.uint8), center, cv2.NORMAL_CLONE)
 
-
-                    #put the modified region back to orginal col image
-                    #col_img=CombineImgs(row_img,col_img,np.linalg.inv(M_col2row))
     cv2.imwrite('tmp_modified_col.png',col_img)
-import pdb;pdb.set_trace()
+
+main()
+# import pdb;pdb.set_trace()

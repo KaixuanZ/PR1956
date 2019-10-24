@@ -57,7 +57,7 @@ def main(ROIfilename,imgdir,ROIdir,outputdir):
     with open(os.path.join(ROIdir,ROIfilename)) as file:
         rect = json.load(file)
 
-    warped, M = Rect.CropRect(img, rect)
+    warped, M_scan2ROI = Rect.CropRect(img, rect)
 
     #local binarization
     warped_b = cv2.adaptiveThreshold(warped, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 15, threshold1)
@@ -73,7 +73,7 @@ def main(ROIfilename,imgdir,ROIdir,outputdir):
             box_col=[[colIndex[i],0],[colIndex[i],H-1],[colIndex[i+1],0],[colIndex[i+1],H-1]]
 
             #get the rect of box_col in original image
-            col_rects.append(Rect.RectOnSrcImg(box_col, M))
+            col_rects.append(Rect.RectOnDstImg(box_col, np.linalg.inv(M_scan2ROI), True))
 
     #save the rect as json
     outputpath=os.path.join(outputdir, ROIfilename.split('.')[0]+'.json')

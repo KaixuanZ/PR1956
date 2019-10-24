@@ -18,8 +18,8 @@ class Page(object):
         self.img_b = Binarization(cv2.imread(imgpath,0))
 
     def AddColumn(self,colRect):
-        col_b, M = Rect.CropRect(self.img_b, colRect)
-        col = Column(col_b, M, colRect)
+        col_b, M_scan2col = Rect.CropRect(self.img_b, colRect)
+        col = Column(col_b, M_scan2col, colRect)
         self.columns.append(col)
 
     def ColsToRows(self):
@@ -52,14 +52,14 @@ class Page(object):
 
 
 class Column(object):
-    def __init__(self, warpedImg_b, M, colRect, rowHeight=None):
+    def __init__(self, warpedImg_b, M_scan2col, colRect, rowHeight=None):
         '''
         :param warpedImg_b: cropped from binarized original image
         :param M:           transformation from the original img to this wapred img
         :param colRect:     rect of this warped image in original image
         :param rowHeight:   rowHeight for estimating large row
         '''
-        self.M = M  # transformation from the original img to this wapred img
+        self.M_scan2col = M_scan2col  # transformation from the original img to this wapred img
         self.warpedImg_b = warpedImg_b  # used for initial row segmention
         self.rowRects = []      # rect of each row images in original img
         self.rowHeight = rowHeight
@@ -205,7 +205,7 @@ class Column(object):
         for i in range(len(rowLeftIndex)):
             # four pts of the rect
             box = np.array([[0, rowLeftIndex[i]], [W - 1, rowLeftIndex[i]], [0, rowRightIndex[i]], [W - 1, rowRightIndex[i]]])
-            rect = Rect.RectOnSrcImg(box, self.M)
+            rect = Rect.RectOnDstImg(box, np.linalg.inv(self.M_scan2col),True)
             self.rowRects.append(rect)
             self.rowHeights.append(GetRowHeight(rect))
 

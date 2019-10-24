@@ -37,7 +37,7 @@ def main(pagefilename,args):
     with open(os.path.join(args.pagedir,pagefilename)) as file:
         rect = json.load(file)
 
-    warped, M = Rect.CropRect(img, rect)
+    warped, M_scan2page = Rect.CropRect(img, rect)
 
     warped = cv2.pyrDown(warped)
     scale = 2 ** 1
@@ -90,7 +90,7 @@ def main(pagefilename,args):
 
     box = cv2.boxPoints(tuple(rect)) * scale
 
-    rect=Rect.RectOnSrcImg(box, M)
+    rect=Rect.RectOnDstImg(box, np.linalg.inv(M_scan2page),True)
 
     #save the rect as json
     with open(os.path.join(args.outputdir, pagefilename), 'w') as outfile:

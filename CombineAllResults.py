@@ -42,8 +42,8 @@ class Page(object):
         for key in sorted(self.row_rects.keys()):
             row_nums.append(row_nums[-1]+len(self.row_rects[key]))
         for i in range(len(self.ocr_jsonfiles)):
-            _,col_M = Rect.CropRect(self.img, self.col_rects[i])
-            self.cols.append(Col(self.ocr_jsonfiles[i],col_M, self.row_rects[str(i)], self.cls[row_nums[i]:row_nums[i+1]], i))
+            _,M_scan2col = Rect.CropRect(self.img, self.col_rects[i])
+            self.cols.append(Col(self.ocr_jsonfiles[i],M_scan2col, self.row_rects[str(i)], self.cls[row_nums[i]:row_nums[i+1]], i))
             self.cols[-1].SetRows()
 
     def SaveToCsv(self,outputpath):
@@ -62,10 +62,10 @@ class Page(object):
         return pd.concat(df)
 
 class Col(object):
-    def __init__(self,ocr_jsonfile=None,col_M=None,row_rects=None,cls=None,col_index=None):
+    def __init__(self,ocr_jsonfile=None,M_scan2col=None,row_rects=None,cls=None,col_index=None):
         '''
         :param ocr_jsonfile:    path of OCR output
-        :param col_M:           transformation from page to col
+        :param M_scan2col:           transformation from scanned image to col
         :param row_rects:       a list of row_rect in this column [row_rect]
         :param cls:             a dict of cls in this column [cls]
         :param col_index:       index of this column in page
@@ -73,14 +73,14 @@ class Col(object):
         self.ocr_jsonfile=ocr_jsonfile
         self.rows=[]
         self.row_rects=row_rects
-        self.col_M=col_M
+        self.M_scan2col=M_scan2col
         self.cls=cls
         self.col_index=str(col_index)
 
     def SetRows(self,OCR=True):
         for i in range(len(self.cls)):
             #row rect on col img coordinate
-            row_rect = Rect.RectOnSrcImg(cv2.boxPoints(tuple(self.row_rects[i])), np.linalg.inv(self.col_M))
+            row_rect = Rect.RectOnDstImg(self.row_rects[i], self.M_scan2col)
             self.rows.append(Row(row_rect,self.cls[i],i))
         if OCR:
             self.AssignDocumentWordsToRow()
@@ -263,5 +263,5 @@ if __name__ == '__main__':
         os.mkdir(args.output_dir)
         print('creating directory ' + args.output_dir)
 
-    page_index = sorted(clean_names(os.listdir(args.OCR_dir)))[917:]
+    page_index = sorted(clean_names(os.listdir(args.OCR_dir)))
     Parallel(n_jobs=-1)(map(delayed(main), page_index, [args]*len(page_index)))

@@ -7,25 +7,28 @@ from shapely.geometry import Polygon
 def AreaOfOverlap(rect1,rect2,rect=True):
     #return the size of intersection area of rect1 and rect2
     if rect:
-        rect1 = Polygon(cv2.boxPoints(tuple(rect1)))
-        rect2 = Polygon(cv2.boxPoints(tuple(rect2)))
-    return rect1.intersection(rect2).area
+        plg1 = Polygon(cv2.boxPoints(tuple(rect1)))
+        plg2 = Polygon(cv2.boxPoints(tuple(rect2)))
+    return plg1.intersection(plg2).area
 
 def CombineRects(rect1,rect2):
     #return a minAreaRect which contains rect1 and rect2
-    box1=cv2.boxPoints(tuple(rect1))
-    box2=cv2.boxPoints(tuple(rect2))
-    box=np.concatenate((box1,box2),axis=0)
-    return cv2.minAreaRect(box)
+    pts1=cv2.boxPoints(tuple(rect1))
+    pts2=cv2.boxPoints(tuple(rect2))
+    pts=np.concatenate((pts1,pts2),axis=0)
+    return cv2.minAreaRect(pts)
 
 def DistOfRects(rect1,rect2):
     #return the L2 distance of centers of two rects
     c1,c2=np.array(rect1[0]),np.array(rect2[0])
     return np.sum((c1-c2)**2)**0.5
 
-def RectOnDstImg(box, M_src2dst):
-    # Given box on src img, and transformation M from src to dst, return the box on dst img.
-    pts=PtsOnDstImg(cv2.boxPoints(tuple(box)), M_src2dst)
+def RectOnDstImg(rect, M_src2dst,flag_box=False):
+    # Given rect on src img, and transformation M from src to dst, return the rect on dst img.
+    if flag_box:
+        pts=PtsOnDstImg(rect,M_src2dst)
+    else:
+        pts=PtsOnDstImg(cv2.boxPoints(tuple(rect)), M_src2dst)
     return cv2.minAreaRect(pts)
 
 def PtsOnDstImg(pts, M_src2dst, orderPts=True):
@@ -33,7 +36,7 @@ def PtsOnDstImg(pts, M_src2dst, orderPts=True):
 
     pts = np.array(pts)
     pts = np.concatenate((pts, np.ones([pts.shape[0], 1])), axis=1)
-    # box on the dst img
+    # pts on the dst img
     pts = np.dot(M_src2dst, pts.T).T
     pts = pts / pts[:, 2, None]
     pts = np.int0(pts[:,0:2]+0.5)
@@ -64,15 +67,15 @@ def OrderPoints(pts):
 
 def CropRect(img, rect):
     #crop img w.r.t. rect, return the warped img and the transformation M (from src to dst)
-    box = cv2.boxPoints(tuple(rect))    # e.g. [[0,0],[0,1],[1,1],[1,0]] <==> ((0.5, 0.5), (1.0, 1.0), -90.0)
-    box = OrderPoints(box)
+    pts = cv2.boxPoints(tuple(rect))    # e.g. [[0,0],[0,1],[1,1],[1,0]] <==> ((0.5, 0.5), (1.0, 1.0), -90.0)
+    pts = OrderPoints(pts)
     # get width and height of the detected rectangle
     if rect[2] < -45:
         height, width = int(rect[1][0]), int(rect[1][1])
     else:
         width, height = int(rect[1][0]), int(rect[1][1])
 
-    src_pts = box.astype("float32")
+    src_pts = pts.astype("float32")
     # corrdinate of the points in box points after the rectangle has been straightened
     dst_pts = np.array([[0, 0],
                         [width, 0],

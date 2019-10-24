@@ -88,7 +88,7 @@ def main(page,args=None):
 
                 #decide if we need to move symbols closer
                 if symbol_intervals:
-                    if symbol_intervals[-1][0]>0.6*row_img_b.shape[1]:
+                    if symbol_intervals[-1][0]>0.6*row_img_b.shape[1] and len(symbol_intervals)>1:
                         #copy the region of FName (src)
                         row_img, M_col2row = Rect.CropRect(col_img, Rect.RectOnDstImg(ExpandRect(row_rects_col[i]),M_col))
                         src_img=row_img[:,symbol_intervals[-2][0]:symbol_intervals[-2][1]].copy()
@@ -97,11 +97,13 @@ def main(page,args=None):
                         t = symbol_intervals[-1][0] - symbol_intervals[-2][1]
                         M_row2col = np.linalg.inv(M_col2row)
 
-                        # mask w.r.t M_row2col
+                        # manually setup mask, for better performance we should automatically find a mask (binarization,DP,etc)
                         roi_pts = np.array([[0, 0],
                                 [src_img.shape[1], 0],
                                 [src_img.shape[1], src_img.shape[0]],
                                 [0, src_img.shape[0]]], dtype="float32")
+
+                        # mask w.r.t M_row2col
                         roi_pts = Rect.PtsOnDstImg(roi_pts, M_row2col)
                         roi_pts = roi_pts - np.min(roi_pts,axis=0)
                         height,width = np.max(roi_pts, axis=0)[::-1]
@@ -112,13 +114,17 @@ def main(page,args=None):
                         center = [[np.median(symbol_intervals[-2]), row_img.shape[0] / 2]]
                         center = tuple(Rect.PtsOnDstImg(center,M_row2col,False)[-1])
                         x , y = np.random.randint(bg_img.shape[0]-roi_mask.shape[0],size=1)[0], np.random.randint(bg_img.shape[1]-roi_mask.shape[1],size=1)[0]
-                        col_img = cv2.seamlessClone(bg_img[x:x+roi_mask.shape[0],y:y+roi_mask.shape[1]], col_img, roi_mask.astype(np.uint8), center, cv2.NORMAL_CLONE)
+                        try:
+                            col_img = cv2.seamlessClone(bg_img[x:x+roi_mask.shape[0],y:y+roi_mask.shape[1]], col_img, roi_mask.astype(np.uint8), center, cv2.NORMAL_CLONE)
 
-                        #paste the src region to target region
-                        center = [[np.median(symbol_intervals[-2]) + t, row_img.shape[0] / 2]]
-                        center = tuple(Rect.PtsOnDstImg(center, M_row2col, False)[-1])
-                        col_img = cv2.seamlessClone(src_img, col_img, roi_mask.astype(np.uint8), center, cv2.NORMAL_CLONE)
-
+                            #paste the src region to target region
+                            center = [[np.median(symbol_intervals[-2]) + t, row_img.shape[0] / 2]]
+                            center = tuple(Rect.PtsOnDstImg(center, M_row2col, False)[-1])
+                            col_img = cv2.seamlessClone(src_img, col_img, roi_mask.astype(np.uint8), center, cv2.NORMAL_CLONE)
+                        except:
+                            # get error if part of src img is out of dst image
+                            # compute on original image can avoid this problem, but this is much faster and there is no big difference
+                            print("ignore first/last row for "+page+'_'+key )
         cls=cls[len(row_rects_col):]
 
         if not os.path.isdir(os.path.join(args.outputdir,page)):
@@ -143,6 +149,6 @@ if __name__ == '__main__':
 
     clean_names = lambda x: [i for i in x if i[0] != '.']
 
-    pages = sorted(clean_names(os.listdir(args.imgdir)))
+    pages = sorted(clean_names(os.listdir(args.imgdir)))[1047:]
     #import pdb;pdb.set_trace()
     Parallel(n_jobs=-1)(map(delayed(main), pages,[args]*len(pages)))

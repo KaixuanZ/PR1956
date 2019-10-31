@@ -14,7 +14,7 @@ import Rect
 clean_names = lambda x: [i for i in x if i[0] != '.']
 
 class Page(object):
-    def __init__(self,img=None,page_filename=None,ocr_jsonfiles=None,ROI_rect=None,col_rects=None,row_rects=None,cls=None):
+    def __init__(self,img=None,page_filename=None,ocr_jsonfiles=None,col_rects=None,row_rects=None,cls=None):
         '''
         :param img:             image of this page
         :param page_filename:   filename of img
@@ -29,7 +29,8 @@ class Page(object):
         self.ocr_jsonfiles=ocr_jsonfiles
         self.col_rects=col_rects
         self.row_rects=row_rects
-        self.ROI_height=max(ROI_rect[1])
+        col_width=[min(col_rect[1]) for col_rect in col_rects]
+        self.col_width=np.median(col_width)
         self.page_index={}
         self.cls=cls
         if page_filename:
@@ -57,8 +58,8 @@ class Page(object):
         #reshape inforamtion of this page to dataframe
         label=[*self.page_index.keys()]
         val=[*self.page_index.values()]
-        label.append('ROI_height')
-        val.append(self.ROI_height)
+        label.append('col_width')
+        val.append(self.col_width)
         df=[]
         for col in self.cols:
             df.append(col.ToDataFrame(val,label))
@@ -244,10 +245,7 @@ def main(page_index, args):
     with open(os.path.join(args.rect_dir,'row_rect',page_index+'.json')) as jsonfile:
         row_rects=json.load(jsonfile)
 
-    with open(os.path.join(args.rect_dir,'ROI_rect',page_index+'.json')) as jsonfile:
-        ROI_rect = json.load(jsonfile)
-
-    page=Page(img=img,page_filename=page_index,ocr_jsonfiles=ocr_jsons,ROI_rect=ROI_rect,col_rects=col_rects,row_rects=row_rects,cls=cls)
+    page=Page(img=img,page_filename=page_index,ocr_jsonfiles=ocr_jsons,col_rects=col_rects,row_rects=row_rects,cls=cls)
     page.SetCols()
 
     #save results to csv

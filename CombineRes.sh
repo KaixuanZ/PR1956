@@ -5,9 +5,7 @@ declare -a Sections=("supplement")
 
 ImgPath=${ImgPath:-'../raw_data/personnel-records/1954/scans/'}
 
-ColRectPath=${ColRectPath:-'../results/personnel-records/1954/seg/'}
-
-RowRectPath=${RowRectPath:-'../results/personnel-records/1954/seg/'}
+RectPath=${RectPath:-'../results/personnel-records/1954/seg/'}
 
 RowClsPath=${RowClsPath:-'../results/personnel-records/1954/cls/'}
 
@@ -28,8 +26,7 @@ for section in "${Sections[@]}"; do
 
     ImgPath_section="$ImgPath$section"
 
-    ColRectPath_section="$ColRectPath$section/col_rect"
-    RowRectPath_section="$RowRectPath$section/row_rect"
+    RectPath_section="$RectPath$section"
     RowClsPath_section="$RowClsPath$section"
     OCRPath_section="$OCRPath$section"
     OutputPath_section="$OutputPath$section"
@@ -44,8 +41,8 @@ for section in "${Sections[@]}"; do
 
     mkdir $OutputPath_section
 
-    python3 CombineAllResults.py --img_dir=$ImgPath_section --col_rect_dir=$ColRectPath_section \
-                                    --row_rect_dir=$RowRectPath_section --row_cls_dir=$RowClsPath_section \
+    python3 CombineAllResults.py --img_dir=$ImgPath_section --rect_dir=$RectPath_section \
+                                    --row_cls_dir=$RowClsPath_section \
                                     --OCR_dir=$OCRPath_section --output_dir=$OutputPath_section
 
 done

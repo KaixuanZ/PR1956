@@ -14,7 +14,7 @@ import Rect
 clean_names = lambda x: [i for i in x if i[0] != '.']
 
 class Page(object):
-    def __init__(self,img=None,page_filename=None,ocr_jsonfiles=None,col_rects=None,row_rects=None,cls=None):
+    def __init__(self,img=None,page_filename=None,ocr_jsonfiles=None,ROI_rect=None,col_rects=None,row_rects=None,cls=None):
         '''
         :param img:             image of this page
         :param page_filename:   filename of img
@@ -27,6 +27,7 @@ class Page(object):
         self.img=img
         self.cols=[]
         self.ocr_jsonfiles=ocr_jsonfiles
+        self.ROI_height=max(ROI_rect[1])
         self.col_rects=col_rects
         self.row_rects=row_rects
         self.page_index={}
@@ -54,8 +55,8 @@ class Page(object):
 
     def ToDataFrame(self):
         #reshape inforamtion of this page to dataframe
-        label=['book', 'page', 'subpage']
-        val=[self.page_index['book'],self.page_index['page'],self.page_index['subpage']]
+        label=['book', 'page', 'subpage','ROI_height']
+        val=[self.page_index['book'],self.page_index['page'],self.page_index['subpage'],self.ROI_height]
         df=[]
         for col in self.cols:
             df.append(col.ToDataFrame(val,label))
@@ -231,14 +232,17 @@ def main(page_index, args):
     cls = cls["name"]
 
     #get col_rects
-    with open(os.path.join(args.col_rect_dir,page_index+'.json')) as jsonfile:
+    with open(os.path.join(args.rect_dir,'col_rect',page_index+'.json')) as jsonfile:
         col_rects=json.load(jsonfile)
 
     #get row_rects
-    with open(os.path.join(args.row_rect_dir,page_index+'.json')) as jsonfile:
+    with open(os.path.join(args.rect_dir,'row_rect',page_index+'.json')) as jsonfile:
         row_rects=json.load(jsonfile)
 
-    page=Page(img=img,page_filename=page_index,ocr_jsonfiles=ocr_jsons,col_rects=col_rects,row_rects=row_rects,cls=cls)
+    with open(os.path.join(args.rect_dir,'ROI_rect',page_index+'.json')) as jsonfile:
+        ROI_rect=json.load(jsonfile)
+
+    page=Page(img=img,page_filename=page_index,ocr_jsonfiles=ocr_jsons,ROI_rect=ROI_rect,col_rects=col_rects,row_rects=row_rects,cls=cls)
     page.SetCols()
 
     #save results to csv
@@ -249,8 +253,7 @@ if __name__ == '__main__':
     # construct the argument parse and parse the arguments
     parser = argparse.ArgumentParser(description='combine row segmentation, row classification, and OCR output')
     parser.add_argument( '--img_dir', type=str)
-    parser.add_argument( '--col_rect_dir', type=str)
-    parser.add_argument( '--row_rect_dir', type=str)
+    parser.add_argument( '--rect_dir', type=str)
     parser.add_argument( '--row_cls_dir', type=str)
     parser.add_argument( '--OCR_dir', type=str)
     parser.add_argument( '--output_dir', type=str)

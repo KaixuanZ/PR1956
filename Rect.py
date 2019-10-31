@@ -86,5 +86,7 @@ def CropRect(img, rect):
     M = cv2.getPerspectiveTransform(src_pts, dst_pts)
 
     # directly warp the rotated rectangle to get the straightened rectangle
-    warped = cv2.warpPerspective(img, M, (width+1, height+1))
+    warped=None
+    if img is not None:
+        warped = cv2.warpPerspective(img, M, (width+1, height+1))
     return warped, M

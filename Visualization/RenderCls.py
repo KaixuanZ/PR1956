@@ -11,12 +11,12 @@ from joblib import Parallel, delayed
 clean_names = lambda x: [i for i in x if i[0] != '.']
 
 #255-[b,g,r] because we want to output img with white background
-ColorDict={"company name":[255-0,255-0,255-255],  #red
+ColorDict={"company":[255-0,255-0,255-255],  #red
             "address":[255-0,255-128,255-0],    #green
-            "variable name":[255-32,255-165,255-218],        #golden rod
-            "variable value":[255-209,255-206,255-0],    #dark turquoise
-            "personnel":[255-205,255-0,255-0]}  #medium blue
-            #"table":[255-139,255-0,255-139]}    #dark magenta
+            "variable":[255-32,255-165,255-218],        #golden rod
+            "value":[255-209,255-206,255-0],    #dark turquoise
+            "personnel":[255-205,255-0,255-0],#}  #medium blue
+            "table":[255-139,255-0,255-139]}    #dark magenta
 
 def Binarization(img,patchSize=9,threshold=7):
     if len(img.shape)==3:
@@ -27,16 +27,17 @@ def Binarization(img,patchSize=9,threshold=7):
     img_b = cv2.adaptiveThreshold(img_gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, patchSize, threshold)
     return img_b
 
-def GetImgFilename(jsonfile):
-    book, p, _ = jsonfile.split('.')[0].split('_')
-    p = p[0] + str(int(p[1:]))
-    return book + '_' + p + '.png'
+#def GetImgFilename(jsonfile):
+#    book, p, _ = jsonfile.split('.')[0].split('_')
+#    p = p[0] + str(int(p[1:]))
+#    return book + '_' + p + '.png'
 
 def main(ROIRectJson,args):
     print("processing "+ROIRectJson)
-    scale = 2
-    img = cv2.imread(os.path.join(args.imgdir,GetImgFilename(ROIRectJson)),0)
-    img = cv2.pyrDown(img)
+    scale = 4
+    img = cv2.imread(os.path.join(args.imgdir,'_'.join(ROIRectJson.split('_')[:-1])+'.png'),0)
+
+    img = cv2.pyrDown(cv2.pyrDown(img))
     img_b = Binarization(img)*255
 
     H,W = img_b.shape
@@ -44,7 +45,7 @@ def main(ROIRectJson,args):
 
     with open(os.path.join(args.clsdir,ROIRectJson)) as clsjson:
         cls = json.load(clsjson)
-    cls=cls["name"]
+    #cls=cls["name"]
 
     with open(os.path.join(args.rowrectdir, ROIRectJson)) as rectjson:
         rowrects = json.load(rectjson)
@@ -56,11 +57,13 @@ def main(ROIRectJson,args):
     with open(os.path.join(args.ROIrectdir, ROIRectJson)) as rectjson:
         ROIrect = json.load(rectjson)
     #import pdb;pdb.set_trace()
-    boxes={"company name":[],  #red
+    boxes={"company":[],  #red
             "address":[],    #green
-            "variable name":[],        #golden rod
-            "variable value":[],    #dark turquoise
-            "personnel":[]}
+            "variable":[],        #golden rod
+            "value":[],    #dark turquoise
+            "personnel":[],
+            "table":[]}
+
     for i in range(len(rowrects)):
         box = cv2.boxPoints(tuple(rowrects[i]))
         box = np.int0(box/scale)
@@ -69,7 +72,7 @@ def main(ROIRectJson,args):
     for key in boxes.keys():
         cv2.drawContours(mask, boxes[key], -1, ColorDict[key], -1)
     b,g,r = mask[:,:,0],mask[:,:,1],mask[:,:,2]
-    #import pdb;pdb.set_trace()
+
     b,g,r = b*img_b,g*img_b,r*img_b
     mask = cv2.merge([b,g,r])
     res+=mask
@@ -77,9 +80,10 @@ def main(ROIRectJson,args):
 
     box = cv2.boxPoints(tuple(ROIrect))
     box = np.int0(box/scale)
+    #import pdb;pdb.set_trace()
     warped,_=Rect.CropRect(res,cv2.minAreaRect(box))
     #import pdb;pdb.set_trace()
-    cv2.imwrite(os.path.join(args.outputdir,ROIRectJson.split('.')[0]+'.png'),warped)
+    cv2.imwrite(os.path.join(args.outputdir,ROIRectJson.split('.')[0]+'.jpg'),warped)
 
 if __name__ == '__main__':
     # construct the argument parse and parse the arguments

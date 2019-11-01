@@ -149,6 +149,6 @@ if __name__ == '__main__':
 
     clean_names = lambda x: [i for i in x if i[0] != '.']
 
-    pages = sorted(clean_names(os.listdir(args.imgdir)))[1047:]
+    pages = sorted(clean_names(os.listdir(args.imgdir)))
     #import pdb;pdb.set_trace()
     Parallel(n_jobs=-1)(map(delayed(main), pages,[args]*len(pages)))

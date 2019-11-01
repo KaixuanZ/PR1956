@@ -230,7 +230,7 @@ def main(page_index, args):
     cls_json = os.path.join(args.row_cls_dir, page_index + '.json')
     with open(cls_json) as jsonfile:
         cls = json.load(jsonfile)
-
+    cls = cls['name']
     #get col_rects
     with open(os.path.join(args.rect_dir,'col_rect',page_index+'.json')) as jsonfile:
         col_rects=json.load(jsonfile)

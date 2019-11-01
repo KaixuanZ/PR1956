@@ -7,7 +7,7 @@ ImgPath=${ImgPath:-'../raw_data/personnel-records/1954/scans/'}
 
 RectPath=${RectPath:-'../results/personnel-records/1954/seg/'}
 
-RowClsPath=${RowClsPath:-'../results/personnel-records/1954/cls/CRF/'}
+RowClsPath=${RowClsPath:-'../results/personnel-records/1954/cls/CRF_old/'}
 
 OCRPath=${OCRPath:-'../results/personnel-records/1954/ocr/gcv_output/'}
 

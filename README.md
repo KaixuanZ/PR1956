@@ -1,6 +1,6 @@
 (Still updating)
 
-This project is mainly based on our NeurIPS 2019 workshop paper [Information Extraction from Text Regionwith Complex Tabular Structure]()
+This project is mainly based on our NeurIPS 2019 workshop paper [Information Extraction from Text Regionwith Complex Tabular Structure](https://openreview.net/pdf?id=Hkx0zpccLr)
 
 ## Repo Structure
 
@@ -26,12 +26,11 @@ Code for classification pipeline
 
 ## Dataset
 
-### Introduction
+### [Introduction](Documemts/DatasetIntroduction.md)
 
-Personnel Record 1956 (PR1956) contains
+ 
+### [link]()
 
-number of images, number of label, category, etc
-
-### link
 
 ## Demo
+

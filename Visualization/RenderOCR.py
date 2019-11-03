@@ -95,7 +95,7 @@ def render_doc_text(col_rect, args):
         if not os.path.isdir(output_dir):
             os.mkdir(output_dir)
             print('creating directory ' + output_dir)
-        path=os.path.join(output_dir,gcv_outputs[i].split('.')[0]+'.png')
+        path=os.path.join(output_dir,gcv_outputs[i].split('.')[0]+'.jpg')
 
         cv2.imwrite(path,warped)
         print("saving visualization results to "+path)

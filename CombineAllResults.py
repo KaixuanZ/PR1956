@@ -172,7 +172,7 @@ class Row(object):
                         y0 = max(y0, word['boundingBox']['vertices'][0]['y'])
                         y1 = min(y1, word['boundingBox']['vertices'][-1]['y'])
                         if y1-y0<0.25*min(word_height_median,get_word_height(word)):
-                            y0,y1=0,10000
+                            y0,y1=word['boundingBox']['vertices'][0]['y'],word['boundingBox']['vertices'][-1]['y']
                             i+=1
                     self.subrows.append(i)
                 except:

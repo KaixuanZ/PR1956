@@ -82,7 +82,7 @@ class Col(object):
     def SetRows(self):
         for i in range(len(self.cls)):
             #row rect on col img coordinate
-            row_rect = Rect.RectOnSrcImg(cv2.boxPoints(tuple(self.row_rects[i])), np.linalg.inv(self.col_M))
+            row_rect = Rect.RectOnDstImg(cv2.boxPoints(tuple(self.row_rects[i])), self.col_M)
             self.rows.append(Row(row_rect,self.cls[i],i))
         self.AssignDocumentWordsToRow()
 

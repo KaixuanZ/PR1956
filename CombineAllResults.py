@@ -135,7 +135,7 @@ class Row(object):
         self.row_bbox = None
         self.row_rect = row_rect
         if row_rect:
-            self.row_bbox = cv2.boxPoints(tuple(row_rect)).tolist()
+            self.row_bbox = Rect.OrderPoints(cv2.boxPoints(tuple(row_rect))).tolist()
         self.cls = cls
         self.words = []
         self.subrows= []

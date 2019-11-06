@@ -44,11 +44,6 @@ def draw_boxes(image, boxes):
         cv2.drawContours(image, [box], 0, color, 3)
     return image
 
-def GetImgFilename(string):
-    book, p , _ = string.split('.')[0].split('_')
-    p = p[0] + str(int(p[1:]))
-    return book + '_' + p + '.png'
-
 def get_document_boxes(ocr_file, feature):
     """Returns document bounds given an image."""
     boxes = []
@@ -91,7 +86,7 @@ def render_doc_text(page, args):
         if not os.path.isdir(output_dir):
             os.mkdir(output_dir)
             print('creating directory ' + output_dir)
-        path=os.path.join(output_dir,gcv_outputs[i].split('.')[0]+'.png')
+        path=os.path.join(output_dir,gcv_outputs[i].split('.')[0]+'.jpg')
 
         cv2.imwrite(path,image)
         print("saving visualization results to "+path)
@@ -107,6 +102,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     clean_names = lambda x: [i for i in x if i[0] != '.']
-    pages=sorted(clean_names(os.listdir(args.img_path)))
+    pages=sorted(clean_names(os.listdir(args.img_path)))[:5]
 
     Parallel(n_jobs=1)(map(delayed(render_doc_text), pages, [args] * len(pages)))

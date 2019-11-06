@@ -79,7 +79,7 @@ def main(ROIRectJson,args):
     box = np.int0(box/scale)
     warped,_=Rect.CropRect(res,cv2.minAreaRect(box))
     #import pdb;pdb.set_trace()
-    cv2.imwrite(os.path.join(args.outputdir,ROIRectJson.split('.')[0]+'.png'),warped)
+    cv2.imwrite(os.path.join(args.outputdir,ROIRectJson.split('.')[0]+'.jpg'),warped)
 
 if __name__ == '__main__':
     # construct the argument parse and parse the arguments

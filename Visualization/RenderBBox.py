@@ -33,7 +33,7 @@ def main(jsonfile,jsondir,imgdir,outputdir):
         box = np.int0(box/scale)
         cv2.drawContours(img, [box], 0, (0,0,255), 1)
 
-    cv2.imwrite(os.path.join(outputdir,jsonfile.split('.')[0]+'.png'),img)
+    cv2.imwrite(os.path.join(outputdir,jsonfile.split('.')[0]+'.jpg'),img)
 
 if __name__ == '__main__':
     # construct the argument parse and parse the arguments

@@ -1,10 +1,8 @@
 #!/usr/bin/env bash
 
-ImgPath=${ImgPath:-'../../raw_data/personnel-records/1954/scans/firm/'}
+ImgPath=${ImgPath:-'../../results/personnel-records/1954/seg/firm/col_img_opt_for_name/'}
 
-RectDir=${JsonDir:-'../../results/personnel-records/1954/seg/firm/col_rect/'}
-
-GCVDir=${GCVDir:-'../../results/personnel-records/1954/ocr/gcv_output/firm'}
+GCVDir=${GCVDir:-'../../results/personnel-records/1954/ocr/gcv_output_opt_for_name/firm'}
 
 OutputDir=${OutputDir:-'../../results/personnel-records/1954/visualization'}
 
@@ -19,4 +17,4 @@ then
     mkdir $OutputDir
 fi
 
-python3 RenderOCR.py --img_path=$ImgPath --rect_dir=$RectDir --gcv_dir=$GCVDir --output_dir=$OutputDir
+python3 RenderOCR.py --img_path=$ImgPath --gcv_dir=$GCVDir --output_dir=$OutputDir

@@ -18,6 +18,9 @@ def main(imgdir, outputdir):
     clean_names = lambda x: [i for i in x if i[0] != '.']
     colImgs = sorted(clean_names(os.listdir(imgdir)))
 
+    #if len(os.listdir(outputdir))>0:
+    #    return 0
+
     for colImg in colImgs:
         imgpath = os.path.join(imgdir, colImg)
         with io.open(imgpath, 'rb') as image_file:

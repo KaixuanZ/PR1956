@@ -106,6 +106,12 @@ class Col(object):
                 for paragraph in block.paragraphs:
                     for word in paragraph.words:
                         assign_document_word_to_row(word, self.rows)
+        #use OCR information to correct potential row segmentation errors
+        self.CheckRowSeg()
+
+    def CheckRowSeg(self):
+        for row in self.rows:
+            row.CheckRowSeg()
 
     def ToDataFrame(self,val,label):
         '''
@@ -127,13 +133,15 @@ class Row(object):
         :param row_rect:    row_rect of this row
         :param cls:         cls of this row
         :param row_index:   index of this row in column
+        :param subrows:     if there are multiple rows in this row image, indicate each row by subrow
         '''
         self.row_bbox = None
         self.row_rect = row_rect
         if row_rect:
-            self.row_bbox = cv2.boxPoints(tuple(row_rect)).tolist()
+            self.row_bbox = Rect.OrderPoints(cv2.boxPoints(tuple(row_rect))).tolist()
         self.cls = cls
         self.words = []
+        self.subrows= []
         self.AOIs = []  # area of intersections (normalized by area of each word)
         self.row_index = str(row_index).zfill(3)
 
@@ -145,6 +153,36 @@ class Row(object):
         dict['cls'] = self.cls
         dict['row_index']=self.row_index
         return dict
+
+    def CheckRowSeg(self):
+        get_word_height = lambda word: word['boundingBox']['vertices'][-1]['y'] - word['boundingBox']['vertices'][0]['y']
+        if len(self.words) > 1:
+            #get estimated word height
+            word_heights=[]
+            for i in range(len(self.words)-1,-1,-1):
+                try:
+                    word_heights.append(get_word_height(self.words[i]))
+                except:
+                    pass
+
+            word_height_median=np.median(word_heights)
+
+            # check if all the words are in one row, but ignore the extremely small one (<1/4 of median symbol height)
+            y0,y1,i=0,10000,0
+            for word in self.words:
+                try:
+                    if get_word_height(word)>0.25*word_height_median:
+                        y0 = max(y0, word['boundingBox']['vertices'][0]['y'])
+                        y1 = min(y1, word['boundingBox']['vertices'][-1]['y'])
+                        if y1-y0<0.25*min(word_height_median,get_word_height(word)):
+                            y0,y1=word['boundingBox']['vertices'][0]['y'],word['boundingBox']['vertices'][-1]['y']
+                            i+=1
+                    self.subrows.append(i)
+                except:
+                    self.subrows.append(i)
+        else:
+            self.subrows=[0]*len(self.words)
+        #import pdb;pdb.set_trace()
 
     def ToDataFrame(self,val,label):
         '''
@@ -160,15 +198,14 @@ class Row(object):
                                 [dict['vertices'][1]['x'], dict['vertices'][1]['y']],
                                 [dict['vertices'][2]['x'], dict['vertices'][2]['y']],
                                 [dict['vertices'][3]['x'], dict['vertices'][3]['y']]]
-
-        label_row += ['AOI', 'word_bbox', 'word_confidence']
-        label_row += ['symbol_bbox', 'symbol_confidence', 'symbol']
+        label=['subrow','AOI', 'word_bbox', 'word_confidence']+['symbol_bbox', 'symbol_confidence', 'symbol']
+        label_row += label
         text = ''
         for i in range(len(self.words)):
             try:
-                val_row1 = val_row + [self.AOIs[i], get_box(self.words[i]['boundingBox']), self.words[i]['confidence']]
+                val_row1 = val_row + [self.subrows[i],self.AOIs[i], get_box(self.words[i]['boundingBox']), self.words[i]['confidence']]
             except:
-                val_row1 = val_row + [self.AOIs[i], None, self.words[i]['confidence']]
+                val_row1 = val_row + [self.subrows[i],self.AOIs[i], None, self.words[i]['confidence']]
             for symbol in self.words[i]['symbols']:
                 text += symbol['text']
                 try:
@@ -181,7 +218,7 @@ class Row(object):
                 data.append(val_row2)
 
         if len(self.words)==0:
-            data.append(val_row+[None]*6)
+            data.append(val_row+[None]*len(label))
         df = pd.DataFrame.from_records(data, columns=label_row)
         df.insert(len(label_row), 'text', text)
         return df

@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 
-#declare -a Sections=("firm" "bank" "credit_union" "official_office" "supplement")
-declare -a Sections=("supplement" "firm")
+declare -a Sections=("firm" "bank" "credit_union" "official_office" "supplement")
+#declare -a Sections=("supplement" "firm")
 
-ImgPath=${ImgPath:-'../raw_data/personnel-records/1954/scans/'}
+ImgPath=${ImgPath:-'../raw_data/personnel-records/1956/scans/'}
 
-RectPath=${RectPath:-'../results/personnel-records/1954/seg/'}
+RectPath=${RectPath:-'../results/personnel-records/1956/seg/'}
 
-RowClsPath=${RowClsPath:-'../results/personnel-records/1954/cls/CRF/'}
+RowClsPath=${RowClsPath:-'../results/personnel-records/1956/cls/CRF/'}
 
-OCRPath=${OCRPath:-'../results/personnel-records/1954/ocr/gcv_output_modified/'}
+OCRPath=${OCRPath:-'../results/personnel-records/1956/ocr/gcv_output_opt_for_name/'}
 
-OutputPath=${OutputPath:-'../results/personnel-records/1954/res/csv_opt_for_name/'}
+OutputPath=${OutputPath:-'../results/personnel-records/1956/res/csv_opt_for_name/'}
 
 read -p "Do you want to remove previous output of probability in $OutputPath? (y/n) " -n 1 -r
 echo -e "\n"

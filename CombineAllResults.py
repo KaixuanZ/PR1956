@@ -44,8 +44,8 @@ class Page(object):
         for key in sorted(self.row_rects.keys()):
             row_nums.append(row_nums[-1]+len(self.row_rects[key]))
         for i in range(len(self.ocr_jsonfiles)):
-            _,col_M = Rect.CropRect(self.img, self.col_rects[i])
-            self.cols.append(Col(self.ocr_jsonfiles[i],col_M, self.row_rects[str(i)], self.cls[row_nums[i]:row_nums[i+1]], i))
+            _,M_scan2col = Rect.CropRect(self.img, self.col_rects[i])
+            self.cols.append(Col(self.ocr_jsonfiles[i],M_scan2col, self.row_rects[str(i)], self.cls[row_nums[i]:row_nums[i+1]], i))
             self.cols[-1].SetRows()
 
     def SaveToCsv(self,outputpath):
@@ -56,18 +56,20 @@ class Page(object):
 
     def ToDataFrame(self):
         #reshape inforamtion of this page to dataframe
-        label=['book', 'page', 'subpage','col_width']
-        val=[self.page_index['book'],self.page_index['page'],self.page_index['subpage'],self.col_width]
+        label=[*self.page_index.keys()]
+        val=[*self.page_index.values()]
+        label.append('col_width')
+        val.append(self.col_width)
         df=[]
         for col in self.cols:
             df.append(col.ToDataFrame(val,label))
         return pd.concat(df)
 
 class Col(object):
-    def __init__(self,ocr_jsonfile=None,col_M=None,row_rects=None,cls=None,col_index=None):
+    def __init__(self,ocr_jsonfile=None,M_scan2col=None,row_rects=None,cls=None,col_index=None):
         '''
         :param ocr_jsonfile:    path of OCR output
-        :param col_M:           transformation from page to col
+        :param M_scan2col:           transformation from scanned image to col
         :param row_rects:       a list of row_rect in this column [row_rect]
         :param cls:             a dict of cls in this column [cls]
         :param col_index:       index of this column in page
@@ -75,16 +77,17 @@ class Col(object):
         self.ocr_jsonfile=ocr_jsonfile
         self.rows=[]
         self.row_rects=row_rects
-        self.col_M=col_M
+        self.M_scan2col=M_scan2col
         self.cls=cls
         self.col_index=str(col_index)
 
-    def SetRows(self):
+    def SetRows(self,OCR=True):
         for i in range(len(self.cls)):
             #row rect on col img coordinate
-            row_rect = Rect.RectOnDstImg(self.row_rects[i], self.col_M)
+            row_rect = Rect.RectOnDstImg(self.row_rects[i], self.M_scan2col)
             self.rows.append(Row(row_rect,self.cls[i],i))
-        self.AssignDocumentWordsToRow()
+        if OCR:
+            self.AssignDocumentWordsToRow()
 
     def AssignDocumentWordsToRow(self):
         '''
@@ -215,7 +218,7 @@ class Row(object):
                 data.append(val_row2)
 
         if len(self.words)==0:
-            data.append(val_row+[None]*len(label))
+            data.append(val_row+[0]+[None]*(len(label)-1))
         df = pd.DataFrame.from_records(data, columns=label_row)
         df.insert(len(label_row), 'text', text)
         return df
@@ -245,7 +248,10 @@ def assign_document_word_to_row(word, rows):
         #if the word has no intersection with any row img, assign it to closest row_img
         index=dists.index(min(dists))
     rows[index].words.append(MessageToDict(word))
-    rows[index].AOIs.append(max_area / word_rect[1][0] / word_rect[1][1])
+    try:
+        rows[index].AOIs.append(max_area / word_rect[1][0] / word_rect[1][1])
+    except: #   0/0
+        rows[index].AOIs.append(0)
 
 def main(page_index, args):
     '''
@@ -300,4 +306,4 @@ if __name__ == '__main__':
         print('creating directory ' + args.output_dir)
 
     page_index = sorted(clean_names(os.listdir(args.OCR_dir)))
-    Parallel(n_jobs=1)(map(delayed(main), page_index, [args]*len(page_index)))
+    Parallel(n_jobs=-1)(map(delayed(main), page_index, [args]*len(page_index)))

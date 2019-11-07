@@ -205,7 +205,7 @@ class Column(object):
         for i in range(len(rowLeftIndex)):
             # four pts of the rect
             box = np.array([[0, rowLeftIndex[i]], [W - 1, rowLeftIndex[i]], [0, rowRightIndex[i]], [W - 1, rowRightIndex[i]]])
-            rect = Rect.RectOnDstImg(box, np.linalg.inv(self.M))
+            rect = Rect.RectOnDstImg(box, np.linalg.inv(self.M), flag_box=True)
             self.rowRects.append(rect)
             self.rowHeights.append(GetRowHeight(rect))
 

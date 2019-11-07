@@ -82,7 +82,7 @@ class Col(object):
     def SetRows(self):
         for i in range(len(self.cls)):
             #row rect on col img coordinate
-            row_rect = Rect.RectOnDstImg(cv2.boxPoints(tuple(self.row_rects[i])), self.col_M)
+            row_rect = Rect.RectOnDstImg(self.row_rects[i], self.col_M)
             self.rows.append(Row(row_rect,self.cls[i],i))
         self.AssignDocumentWordsToRow()
 
@@ -300,4 +300,4 @@ if __name__ == '__main__':
         print('creating directory ' + args.output_dir)
 
     page_index = sorted(clean_names(os.listdir(args.OCR_dir)))
-    Parallel(n_jobs=-1)(map(delayed(main), page_index, [args]*len(page_index)))
+    Parallel(n_jobs=1)(map(delayed(main), page_index, [args]*len(page_index)))

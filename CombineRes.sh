@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-declare -a Sections=("firm" "bank" "credit_union" "official_office" "supplement")
+declare -a Sections=("firm" "supplement" "bank" "credit_union" "official_office")
 #declare -a Sections=("firm" "supplement")
 
 ImgPath=${ImgPath:-'../raw_data/personnel-records/1954/scans/'}
@@ -9,9 +9,9 @@ RectPath=${RectPath:-'../results/personnel-records/1954/seg/'}
 
 RowClsPath=${RowClsPath:-'../results/personnel-records/1954/cls/CRF/'}
 
-OCRPath=${OCRPath:-'../results/personnel-records/1954/ocr/gcv_output/'}
+OCRPath=${OCRPath:-'../results/personnel-records/1954/ocr/gcv_output_opt_for_name/'}
 
-OutputPath=${OutputPath:-'../results/personnel-records/1954/res/csv_with_subpage/'}
+OutputPath=${OutputPath:-'../results/personnel-records/1954/res/csv_opt_for_name/'}
 
 read -p "Do you want to remove previous output of probability in $OutputPath? (y/n) " -n 1 -r
 echo -e "\n"

@@ -218,7 +218,7 @@ class Row(object):
                 data.append(val_row2)
 
         if len(self.words)==0:
-            data.append(val_row+[None]*len(label))
+            data.append(val_row+[0]+[None]*(len(label)-1))
         df = pd.DataFrame.from_records(data, columns=label_row)
         df.insert(len(label_row), 'text', text)
         return df
@@ -304,4 +304,4 @@ if __name__ == '__main__':
         print('creating directory ' + args.output_dir)
 
     page_index = sorted(clean_names(os.listdir(args.OCR_dir)))
-    Parallel(n_jobs=-1)(map(delayed(main), page_index, [args]*len(page_index)))
+    Parallel(n_jobs=1)(map(delayed(main), page_index, [args]*len(page_index)))

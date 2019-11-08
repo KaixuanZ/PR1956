@@ -51,6 +51,7 @@ class Page(object):
     def SaveToCsv(self,outputpath):
         #save information of this page to one csv file
         df=self.ToDataFrame()
+        df.index.name="symbol_id"
         df.to_csv(outputpath)
         print("saving output to " + outputpath)
 

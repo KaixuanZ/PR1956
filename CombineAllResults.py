@@ -51,6 +51,7 @@ class Page(object):
     def SaveToCsv(self,outputpath):
         #save information of this page to one csv file
         df=self.ToDataFrame()
+        df.index.name="symbol_id"
         df.to_csv(outputpath)
         print("saving output to " + outputpath)
 
@@ -304,4 +305,4 @@ if __name__ == '__main__':
         print('creating directory ' + args.output_dir)
 
     page_index = sorted(clean_names(os.listdir(args.OCR_dir)))
-    Parallel(n_jobs=1)(map(delayed(main), page_index, [args]*len(page_index)))
+    Parallel(n_jobs=-1)(map(delayed(main), page_index, [args]*len(page_index)))

@@ -1,6 +1,6 @@
 # Preprocessing Pipeline
 
-Original Scanned Image ==> [Page Detection](#Page Detection) ==> [ROI Detection](#Region of Interest) ==> Column Segmentation ==> Row Segmentation
+Original Scanned Image ==> [Page Detection](##Page Detection) ==> [ROI Detection](##Region of Interest) ==> Column Segmentation ==> Row Segmentation
 
 ## Page Detection
 

@@ -1,6 +1,6 @@
 # Classification Pipeline
 
-CNN classification ==> Linear Chain CRF ==> Dynamic String Warping
+CNN classification ==> Linear Chain CRF ==> Dynamic String Warping (optional)
 
 ## Convotional Neural Net
 ### CNN Model
@@ -50,6 +50,9 @@ Dynamic programming
 /Postprocessing/DynamicStringWarping.py
  
 ### Tips
+
+Dynamic string warping (haven't been applied to PR1956) is very similar to edit distance.
+
 If in one book there are multiple block structures, we can define multiple target string and choose the results with minimum cost
 
 This method can be applied for fixing wrong classification (when cost is very small), or as a retrieval method to find missing companies (cost would be large)

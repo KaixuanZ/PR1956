@@ -26,14 +26,25 @@ Code for classification pipeline
 
 ## Dataset
 
-### [Introduction](Documemts/DatasetIntroduction.md)
-
+### Introduction
+Personnel Record 1956 (PR1956) contains
+number of images, number of label, category, etc
  
 ### Download
 
 [Code](DownloadPR1956.sh) for downloading PR1956.
 
+### Directroy Structure
+####Raw Image
+
+####Labeled Data
+
+####Image preprocessing results
+
+####Classification results
 
 ## Demo
 
-A demo code which visualizes row segmentation result.
+A demo [code]() which visualizes row segmentation result.
+
+A demo [code]() which visualizes row classification result.

@@ -6,7 +6,7 @@ from google.protobuf.json_format import MessageToJson
 from joblib import Parallel, delayed
 import argparse
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "jp-manager-885dcc3b4488.json"
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = ""
 client = vision.ImageAnnotatorClient()
 
 def main(imgdir, outputdir):
@@ -47,7 +47,7 @@ if __name__ == '__main__':
 
     clean_names = lambda x: [i for i in x if i[0] != '.']
     imgdir = os.listdir(args.imgdir)
-    imgdir = sorted(clean_names(imgdir))
+    imgdir = sorted(clean_names(imgdir))[::99]
 
     outputdir = [os.path.join(args.outputdir, dir) for dir in imgdir]
     imgdir = [os.path.join(args.imgdir, dir) for dir in imgdir]

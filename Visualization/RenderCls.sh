@@ -6,7 +6,7 @@ ROIRectDir=${ROIRectDir:-'../../results/personnel-records/1956/seg/firm/ROI_rect
 
 RowRectDir=${RowRectDir:-'../../results/personnel-records/1956/seg/firm/row_rect'}
 
-ClsDir=${ClsDir:-'../../results/personnel-records/1956/cls/CRF_tmp_1/firm/'}
+ClsDir=${ClsDir:-'../../results/personnel-records/1956/cls/CRF/firm/'}
 
 OutputDir=${OutputDir:-'../../results/personnel-records/1956/visualization'}
 

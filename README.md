@@ -32,7 +32,7 @@ number of images, number of label, category, etc
  
 ### Download
 
-[Code](DownloadPR1956.sh) for downloading PR1956.
+[Code](DownloadPR1956.sh) for downloading PR1956. [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html) is required to download PR1956.
 
 ### Directroy Structure
 ####Raw Image

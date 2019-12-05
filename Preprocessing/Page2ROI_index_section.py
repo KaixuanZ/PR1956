@@ -15,8 +15,8 @@ def main(pagefilename,args):
     :return: rect(s) of detected ROI
     estimate the ROI by finding the vertical lines
     '''
-    if "pr1956_f0006_2_1" not in pagefilename:
-        return 0
+    #if "pr1956_f0006_2_1" not in pagefilename:
+    #    return 0
     print("processing "+pagefilename)
     imgfilename='_'.join(pagefilename.split('_')[:-1])+'.png'
 
@@ -34,7 +34,7 @@ def main(pagefilename,args):
     img = cv2.medianBlur(img, 3)
     # local binarization
     img = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 15, 5)
-    cv2.imwrite('binary1.png', img)
+    #cv2.imwrite('binary1.png', img)
     # filling small holes on vertical lines
     kernel = np.ones([5, 5], np.uint8)
 
@@ -51,7 +51,7 @@ def main(pagefilename,args):
             #mask= cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
             kernel = np.ones([3, 11], np.uint8)
             mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
-            cv2.imwrite('binary2.png', mask)
+            #cv2.imwrite('binary2.png', mask)
             mask = mask.astype(np.uint8)
             h_mid ,w_mid=int(img.shape[0]/2),int(mask.shape[1]/2)
             if np.sum(mask[h_mid-100:h_mid+100,w_mid-100:w_mid+100])>0:

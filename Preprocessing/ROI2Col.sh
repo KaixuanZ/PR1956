@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-ImgPath=${ImgPath:-'../../results/personnel-records/1954/scans/index'}
+ImgPath=${ImgPath:-'../../raw_data/personnel-records/1954/scans/index'}
 
 ROIPath=${ROIPath:-'../../results/personnel-records/1954/seg/index/ROI_rect'}
 

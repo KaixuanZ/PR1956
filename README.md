@@ -26,7 +26,7 @@ Code for classification pipeline
 
 # Dataset
 
-## `Introduction`
+### `Introduction`
 
 Please look at the second section of our [paper](https://openreview.net/pdf?id=Hkx0zpccLr). Notice that PR1954 doesn't have class `Table`.
 
@@ -38,11 +38,11 @@ Please look at the second section of our [paper](https://openreview.net/pdf?id=H
 | Column Bounding Box   | Included  |
 | Row Bounding Box   | Included  |
 
-## `Download`
+### `Download`
 
 [Code](DownloadPR1954.sh) for downloading PR1954. [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html) is required to download PR1954.
 
-## AWS S3 Directory Structure
+# AWS S3 Directory Structure
 
 ### `Raw Image`
 AWS S3 path: `s3://harvardaha-raw-data/personnel-records/1954/scans/firm/`
@@ -60,9 +60,9 @@ CRF output: `s3://harvardaha-results/personnel-records/1954/cls/CRF/firm/`
 
 # Environment
 
-## `Anaconda` (will update)
+### `Anaconda` (will update)
 
-## `AWS AMI`
+### `AWS AMI`
 
 # Demo
 

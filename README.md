@@ -37,6 +37,7 @@ Please look at the second section of our [paper](https://openreview.net/pdf?id=H
 | ROI Bounding Box   | Included  |
 | Column Bounding Box   | Included  |
 | Row Bounding Box   | Included  |
+| Row Classification   | Included  |
 
 ### `Download`
 

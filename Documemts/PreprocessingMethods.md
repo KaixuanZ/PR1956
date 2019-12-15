@@ -80,10 +80,12 @@ Binarize the original scan and crop the column rect
 
 Segment column by a naive method and get a set of [row_rect]
 
+Keep row segmentation with following advanced method
+
     for row_rect in [row_rect]:
-            if row_rect.height > k1 * threshold:     #under-segmentation
+            if row_rect.height > k1 * threshold:     #case of under-segmentation
                     rotate row_rect a little bit and segment it again with the naive method
-            if row_rect.height < k2 * threshold:     #over-segmentation
+            if row_rect.height < k2 * threshold:     #case of over-segmentation
                     merge row_rect with nearest neighbor
 
 naive method is similar to the idea of column segmentation

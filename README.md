@@ -33,10 +33,10 @@ Please look at the second section of our [paper](https://openreview.net/pdf?id=H
 |   |  |
 | ------------- | ------------- |
 | Number of Raw Scans | 684 |
-| Page Bbox  | Yes  |
-| ROI Bbox   | Yes  |
-| Column Bbox   | Yes  |
-| Row Bbox   | Yes  |
+| Page Bounding Box  | Included  |
+| ROI Bounding Box   | Included  |
+| Column Bounding Box   | Included  |
+| Row Bounding Box   | Included  |
 
 ## Download
 
@@ -45,18 +45,18 @@ Please look at the second section of our [paper](https://openreview.net/pdf?id=H
 ## AWS S3 Directory Structure
 
 ### `Raw Image`
-AWS S3 path: `s3://harvardaha-raw-data/personnel-records/1954/scans/`
+AWS S3 path: `s3://harvardaha-raw-data/personnel-records/1954/scans/firm/`
 
 ### `Labeled Data`
 AWS S3 path: `s3://harvardaha-results/personnel-records/1954/labeled_data/`
 
 ### `Image Segmentation Results`
-AWS S3 path: `s3://harvardaha-results/personnel-records/1954/seg/`
+AWS S3 path: `s3://harvardaha-results/personnel-records/1954/seg/firm/`
 
 ### `Classification Results`
-CNN probability output: `s3://harvardaha-results/personnel-records/1954/prob/`
+CNN probability output: `s3://harvardaha-results/personnel-records/1954/prob/firm/`
 
-CRF output: `s3://harvardaha-results/personnel-records/1954/cls/CRF/`
+CRF output: `s3://harvardaha-results/personnel-records/1954/cls/CRF/firm/`
 
 # Demo
 

@@ -2,48 +2,55 @@ Due to copy right issue, we public images of PR1954 instead of PR1956 (their dat
 
 This project is mainly based on our NeurIPS 2019 workshop paper [Information Extraction from Text Regionwith Complex Tabular Structure](https://openreview.net/pdf?id=Hkx0zpccLr)
 
-## Repo Structure
+# Repo Structure
 
-#### `Documents/`
+### `Documents/`
 
 Files explaining the methods of [preprocessing](Documemts/PreprocessingMethods.md) and [classification](Documemts/ClassificationMethods.md)
 
-#### `Visualization/`
+### `Visualization/`
 
 Code for visualization results
 
-#### `OCR/`
+### `OCR/`
 
 Code for using Google Cloud Vision API
 
-#### `Preprocessing/`
+### `Preprocessing/`
 
 Code for preprocessing pipeline
 
-#### `CNN/`, `GraphicalModel/`, and `Postprocessing/`
+### `CNN/`, `GraphicalModel/`, and `Postprocessing/`
 
 Code for classification pipeline
 
-## Dataset
+# Dataset
 
-### Introduction
+## Introduction
 Personnel Record 1954 (PR1956) contains
 number of images, number of label, category, etc
  
-### Download
+## Download
 
 [Code](DownloadPR1954.sh) for downloading PR1954. [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html) is required to download PR1954.
 
-### Directroy Structure
-####Raw Image
+## AWS S3 Directory Structure
 
-####Labeled Data
+### `Raw Image`
+AWS S3 path: `s3://harvardaha-raw-data/personnel-records/1954/`
 
-####Image preprocessing results
+### `Labeled Data`
+AWS S3 path: `s3://harvardaha-results/personnel-records/1954/labeled_data/`
 
-####Classification results
+### `Image Segmentation Results`
+AWS S3 path: `s3://harvardaha-results/personnel-records/1954/seg/`
 
-## Demo
+### `Classification Results`
+CNN probability output: `s3://harvardaha-results/personnel-records/1954/prob/`
+
+CRF output: `s3://harvardaha-results/personnel-records/1954/cls/CRF/`
+
+# Demo (will update soon)
 
 A demo [code]() which visualizes row segmentation result.
 

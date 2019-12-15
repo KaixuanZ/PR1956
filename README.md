@@ -58,6 +58,10 @@ CNN probability output: `s3://harvardaha-results/personnel-records/1954/prob/fir
 
 CRF output: `s3://harvardaha-results/personnel-records/1954/cls/CRF/firm/`
 
+# Environment
+
+Use Anaconda ...(will update)
+
 # Demo
 
 If you have download the whole dataset and want to reproduce the results, please read the files in `Documents/` and run correspondent shell one by one. Remember to modify the input/output path.

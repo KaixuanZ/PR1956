@@ -8,6 +8,7 @@ Original Scanned Image ==> Page Detection ==> ROI Detection ==> Column Segmentat
 Input: color image with size H\*W\*3
 
 Output: rect(s) of detected page(s)
+
 For each pixel computing P(Y|X) where X is the information of a pixel, and Y is the classification results (page / not page) of that pixel
  
 ### Algorithm

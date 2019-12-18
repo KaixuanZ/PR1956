@@ -265,8 +265,9 @@ def main(page_index, args):
 
     #read in image
     #import pdb;pdb.set_trace()
-    imgfile='_'.join(page_index.split('_')[:-1])+'.png'
-    img=cv2.imread(os.path.join(args.img_dir,imgfile),0)
+    book, page, _ = page_index.split('_')
+    imgfile = book + "_p" + str(int(page[1:])) + ".png"
+    img = cv2.imread(os.path.join(args.img_dir, imgfile), 0)
 
     #get ocr json filenames
     ocr_jsons = [os.path.join(args.OCR_dir,page_index,ocrfile) for ocrfile in sorted(clean_names(os.listdir(os.path.join(args.OCR_dir, page_index))))]

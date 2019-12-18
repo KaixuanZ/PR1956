@@ -16,6 +16,8 @@ def GetImgFilename(jsonfile):
 def main(rect_json, args):
     if 'row' in args.rectdir:
         row=True
+    else:
+        row=False
     print('processing ' + rect_json)
 
     imgpath = os.path.join(args.imgdir, GetImgFilename(rect_json))

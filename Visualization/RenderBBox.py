@@ -23,15 +23,32 @@ def main(jsonfile,jsondir,imgdir,outputdir):
     img = cv2.imread(os.path.join(imgdir, ImgFile(jsonfile)))
     img = cv2.pyrDown(cv2.pyrDown(img))
 
-    with open(file) as rectjson:
-        dict = json.load(rectjson)
-    rects=[]
-    for key in dict.keys():
-        rects+=dict[key]
-    for rect in rects:
+    if 'col_rect' in jsondir:
+        with open(file) as rectjson:
+            rects = json.load(rectjson)
+        boxes=[]
+        for rect in rects:
+            box = cv2.boxPoints(tuple(rect))
+            boxes.append(np.int0(box / scale))
+        cv2.drawContours(img, boxes, -1, (0, 0, 255), 2)
+    elif 'row_rect' in jsondir:
+        with open(file) as rectjson:
+            dict = json.load(rectjson)
+        rects=[]
+        boxes=[]
+        for key in dict.keys():
+            rects+=dict[key]
+        for rect in rects:
+            box = cv2.boxPoints(tuple(rect))
+            box = np.int0(box/scale)
+            boxes.append(box)
+        cv2.drawContours(img, boxes, -1, (0,0,255), 1)
+    else:
+        with open(file) as rectjson:
+            rect = json.load(rectjson)
         box = cv2.boxPoints(tuple(rect))
-        box = np.int0(box/scale)
-        cv2.drawContours(img, [box], 0, (0,0,255), 1)
+        box = np.int0(box / scale)
+        cv2.drawContours(img, [box], 0, (0, 0, 255), 2)
 
     cv2.imwrite(os.path.join(outputdir,jsonfile.split('.')[0]+'.jpg'),img)
 

@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
 
-#####download one image and its segmentation results
+#####download one image and visualize its segmentation results
 
-#create directories for saving data
+#create directories for input&output data
 img_dir='raw_data'
 mkdir $img_dir
 

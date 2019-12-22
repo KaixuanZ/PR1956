@@ -8,9 +8,11 @@ img_dir='raw_data'
 mkdir $img_dir
 
 res_dir='results'
-rect_dir='col_rect'
 mkdir $res_dir
+rect_dir='col_rect'
 mkdir $res_dir/$rect_dir
+visualization='visualization'
+mkdir $res_dir/$visualization
 
 #download one orginal images from AWS S3
 index='pr1954_p246'
@@ -23,7 +25,4 @@ AWS_S3_Path="s3://harvardaha-results/personnel-records/1954/seg/firm/$rect_dir/$
 aws2 s3 cp $AWS_S3_Path $res_dir/$rect_dir
 
 #####visualize the results
-visualization='visualization'
-mkdir $res_dir/$visualization
-
 python ../Visualization/RenderBBox.py --imgdir=$img_dir --jsondir=$res_dir/$rect_dir --outputdir=$res_dir/$visualization

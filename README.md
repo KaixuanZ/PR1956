@@ -71,5 +71,4 @@ If you have download the whole dataset and want to reproduce the results, please
 
 If you have download the whole dataset and want to visualize the results, run correspondent shell in `Visualization/`. Remember to modify the input/output path.
 
-(will update soon)
-A demo [code]() which downloads one sample data and visualizes results.
+A demo [code](demo/download&visualization.sh) which downloads one sample data and visualizes results.

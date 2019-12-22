@@ -43,21 +43,15 @@ Please look at the second section of our [paper](https://openreview.net/pdf?id=H
 
 [Code](DownloadPR1954.sh) for downloading PR1954. [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html) is required to download PR1954.
 
-# AWS S3 Directory Structure
+### `AWS S3 Directory Structure`
 
-### `Raw Image`
-AWS S3 path: `s3://harvardaha-raw-data/personnel-records/1954/scans/firm/`
-
-### `Labeled Data`
-AWS S3 path: `s3://harvardaha-results/personnel-records/1954/labeled_data/`
-
-### `Image Segmentation Results`
-AWS S3 path: `s3://harvardaha-results/personnel-records/1954/seg/firm/`
-
-### `Classification Results`
-CNN probability output: `s3://harvardaha-results/personnel-records/1954/prob/firm/`
-
-CRF output: `s3://harvardaha-results/personnel-records/1954/cls/CRF/firm/`
+|  Data |  AWS S3 Path|
+| ------------- | ------------- |
+| Raw Image | s3://harvardaha-raw-data/personnel-records/1954/scans/firm/ |
+| Labeled Data | s3://harvardaha-results/personnel-records/1954/labeled_data/ |
+| Segmentation Results | s3://harvardaha-results/personnel-records/1954/seg/firm/ |
+| CNN Output | s3://harvardaha-results/personnel-records/1954/prob/firm/ |
+| CRF Output | s3://harvardaha-results/personnel-records/1954/cls/CRF/firm/ |
 
 # Environment
 

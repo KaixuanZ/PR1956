@@ -63,8 +63,6 @@ CRF output: `s3://harvardaha-results/personnel-records/1954/cls/CRF/firm/`
 
 ### `Anaconda` (will update)
 
-### `AWS AMI`
-
 # Demo
 
 If you have download the whole dataset and want to reproduce the results, please read the files in `Documents/` and run correspondent shell one by one. Remember to modify the input/output path.

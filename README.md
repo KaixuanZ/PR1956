@@ -41,7 +41,11 @@ Please look at the second section of our [paper](https://openreview.net/pdf?id=H
 
 ### `Download`
 
-[Code](DownloadPR1954.sh) for downloading PR1954. [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html) is required to download PR1954.
+[AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html) is required for downloading data from AWS.
+
+[Code](DownloadPR1954.sh) for downloading all the data of PR1954.
+
+[Code]() for downloading the model and train&test set of PR1954. (will update soon)
 
 ### `AWS S3 Directory Structure`
 
@@ -52,6 +56,14 @@ Please look at the second section of our [paper](https://openreview.net/pdf?id=H
 | Segmentation Results | s3://harvardaha-results/personnel-records/1954/seg/firm/ |
 | CNN Output | s3://harvardaha-results/personnel-records/1954/prob/firm/ |
 | CRF Output | s3://harvardaha-results/personnel-records/1954/cls/CRF/firm/ |
+
+### `Classification Accuracy`
+| Book  | Method | Accuracy |
+| -------- | ----- | ------------- |
+| PR1954 | CNN | 98.4% |
+| PR1954 | CNN+CRF | 99.7% |
+| PR1956 | CNN | 95.6% |
+| PR1956 | CNN+CRF | 96.8% |
 
 # Environment
 
@@ -64,3 +76,5 @@ If you have download the whole dataset and want to reproduce the results, please
 If you have download the whole dataset and want to visualize the results, run correspondent shell in `Visualization/`. Remember to modify the input/output path.
 
 A demo [code](demo/download&visualization.sh) which downloads one sample data and visualizes results.
+
+A demo [code]() which downloads the model and test the model with test data.  (will update soon)

@@ -67,7 +67,11 @@ Please look at the second section of our [paper](https://openreview.net/pdf?id=H
 
 # Environment
 
-### `Anaconda` (will update)
+### `Anaconda`
+
+Using anaconda to create a virtual environment with the command below:
+
+`conda env create -f environment.yml`
 
 # Demo
 
@@ -77,4 +81,4 @@ If you have download the whole dataset and want to visualize the results, run co
 
 A demo [code](demo/download&visualization.sh) which downloads one sample data and visualizes results.
 
-A demo [code]() which downloads the model and test the model with test data.  (will update soon)
+A demo [code]() which downloads the model and test the model with test data.  (will update)

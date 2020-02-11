@@ -13,44 +13,44 @@ def ImgFile(jsonfile):
     return '_'.join(jsonfile.split('_')[:-1]) + '.png'
 
 def main(jsonfile,jsondir,imgdir,outputdir):
-    #if "pr1956_f0184_2_1" not in jsonfile:
+    #if "pr1956_f0014" not in jsonfile and "pr1956_f0064" not in jsonfile:
     #    return 0
     print("processing ", jsonfile)
 
     file=os.path.join(jsondir,jsonfile)
-    scale = 2
+    scale = 2**3
     #import pdb;pdb.set_trace()
     img = cv2.imread(os.path.join(imgdir, ImgFile(jsonfile)))
-    img = cv2.pyrDown(img)
+    img = cv2.pyrDown(cv2.pyrDown(cv2.pyrDown(img)))
 
-    '''
-    with open(file) as rectjson:
-        rect = json.load(rectjson)
-    box = cv2.boxPoints(tuple(rect))
-    box = np.int0(box / scale)
-    cv2.drawContours(img, [box], 0, (0, 0, 255), 2)
-    
-    with open(file) as rectjson:
-        rects = json.load(rectjson)
-    boxes=[]
-    for rect in rects:
+    if 'col_rect' in jsondir:
+        with open(file) as rectjson:
+            rects = json.load(rectjson)
+        boxes=[]
+        for rect in rects:
+            box = cv2.boxPoints(tuple(rect))
+            boxes.append(np.int0(box / scale))
+        cv2.drawContours(img, boxes, -1, (0, 0, 255), 2)
+    elif 'row_rect' in jsondir:
+        with open(file) as rectjson:
+            dict = json.load(rectjson)
+        rects=[]
+        boxes=[]
+        for key in dict.keys():
+            rects+=dict[key]
+        for rect in rects:
+            box = cv2.boxPoints(tuple(rect))
+            box = np.int0(box/scale)
+            boxes.append(box)
+        cv2.drawContours(img, boxes, -1, (0,0,255), 1)
+    else:
+        with open(file) as rectjson:
+            rect = json.load(rectjson)
         box = cv2.boxPoints(tuple(rect))
-        boxes.append(np.int0(box / scale))
-    cv2.drawContours(img, boxes, -1, (0, 0, 255), 2)
-    '''
-    with open(file) as rectjson:
-        dict = json.load(rectjson)
-    rects=[]
-    boxes=[]
-    for key in dict.keys():
-        rects+=dict[key]
-    for rect in rects:
-        box = cv2.boxPoints(tuple(rect))
-        box = np.int0(box/scale)
-        boxes.append(box)
-    cv2.drawContours(img, boxes, -1, (0,0,255), 1)
+        box = np.int0(box / scale)
+        cv2.drawContours(img, [box], 0, (0, 0, 255), 2)
 
-    cv2.imwrite(os.path.join(outputdir,jsonfile.split('.')[0]+'.png'),img)
+    cv2.imwrite(os.path.join(outputdir,jsonfile.split('.')[0]+'.jpg'),img)
 
 if __name__ == '__main__':
     # construct the argument parse and parse the arguments

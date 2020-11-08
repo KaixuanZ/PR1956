@@ -45,8 +45,6 @@ Please look at the second section of our [paper](https://openreview.net/pdf?id=H
 
 [Code](DownloadPR1954.sh) for downloading all the data of PR1954.
 
-[Code]() for downloading the model and train&test set of PR1954. (will update soon)
-
 ### `AWS S3 Directory Structure`
 
 |  Data |  AWS S3 Path|
@@ -80,5 +78,3 @@ If you have download the whole dataset and want to reproduce the results, please
 If you have download the whole dataset and want to visualize the results, run correspondent shell in `Visualization/`. Remember to modify the input/output path.
 
 A demo [code](demo/download&visualization.sh) which downloads one sample data and visualizes results.
-
-A demo [code]() which downloads the model and test the model with test data.  (will update)
